@@ -19,7 +19,10 @@ class ImageCache: ObservableObject {
         let fileURL = cacheDirectory.appendingPathComponent("\(studioId).png")
         
         // Check cache first
-        if let data = try? Data(contentsOf: fileURL) {
+        if let data = await Task.detached(priority: .utility, operation: { () -> Data? in
+            guard let cached = try? Data(contentsOf: fileURL), NSImage(data: cached) != nil else { return nil }
+            return cached
+        }).value {
             return data
         }
 
@@ -28,52 +31,59 @@ class ImageCache: ObservableObject {
             var request = URLRequest(url: url)
             request.addValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
             request.addValue("image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8", forHTTPHeaderField: "Accept")
-            request.addValue("https://www.google.com/", forHTTPHeaderField: "Referer")
-            
-            let (data, response) = try await URLSession.shared.data(for: request)
+            request.timeoutInterval = 20
+            let (data, response) = try await downloadWithRetry(request)
             
             guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
                 print("Failed to download image from \(url), status code: \((response as? HTTPURLResponse)?.statusCode ?? 0)")
                 return nil
             }
 
-            guard let rawImage = NSImage(data: data) else {
-                print("Failed to create NSImage from data for \(url)")
-                return nil
-            }
-            
-            // Process the image
-            let dataString = String(data: data.prefix(512), encoding: .utf8)?.lowercased() ?? ""
-            let isSVG = dataString.contains("<svg") || dataString.contains("<?xml") || url.pathExtension.lowercased() == "svg"
-            
-            var processedImage: NSImage = rawImage
-            
-            if !isSVG {
-                if let bgRemoved = rawImage.removingBackground(tolerance: 0.05) {
-                    if let cropped = bgRemoved.croppedLeavingMargin(marginPercent: 0.1) {
-                        processedImage = cropped
-                    } else {
-                        processedImage = bgRemoved
-                    }
+            // Pixel scanning, background removal and TIFF conversion are expensive.
+            // Perform them off the UI actor so a grid of logos can scroll smoothly.
+            return await Task.detached(priority: .utility) { () -> Data? in
+                guard let rawImage = NSImage(data: data) else { return nil }
+                let prefix = String(data: data.prefix(512), encoding: .utf8)?.lowercased() ?? ""
+                let isSVG = prefix.contains("<svg") || prefix.contains("<?xml") || url.pathExtension.lowercased() == "svg"
+                var processedImage = rawImage
+                if !isSVG, let backgroundRemoved = rawImage.removingBackground(tolerance: 0.05) {
+                    processedImage = backgroundRemoved.croppedLeavingMargin(marginPercent: 0.1) ?? backgroundRemoved
                 }
-            }
-            
-            // Always tint white
-            let tintedImage = processedImage.tinted(with: .white)
-            
-            // Save processed image as PNG
-            if let tiff = tintedImage.tiffRepresentation,
-               let bitmap = NSBitmapImageRep(data: tiff),
-               let pngData = bitmap.representation(using: .png, properties: [:]) {
-                try pngData.write(to: fileURL)
-                return pngData
-            }
-            
-            return data
+                let tintedImage = processedImage.tinted(with: .white)
+                if let tiff = tintedImage.tiffRepresentation,
+                   let bitmap = NSBitmapImageRep(data: tiff),
+                   let pngData = bitmap.representation(using: .png, properties: [:]) {
+                    try? pngData.write(to: fileURL, options: .atomic)
+                    return pngData
+                }
+                return data
+            }.value
         } catch {
             print("Failed to load image data from \(url): \(error)")
             return nil
         }
+    }
+
+    /// Recover from intermittent DNS/connectivity failures and server throttling.
+    /// Certificate validation remains enforced by the system URLSession.
+    private func downloadWithRetry(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        for attempt in 0..<3 {
+            do {
+                let result = try await URLSession.shared.data(for: request)
+                let status = (result.1 as? HTTPURLResponse)?.statusCode ?? 0
+                if (status == 429 || (500...599).contains(status)) && attempt < 2 {
+                    try await Task.sleep(for: .milliseconds(350 * (attempt + 1)))
+                    continue
+                }
+                return result
+            } catch {
+                let code = (error as NSError).code
+                let transient = [-1001, -1003, -1004, -1005, -1009].contains(code)
+                guard transient && attempt < 2 else { throw error }
+                try await Task.sleep(for: .milliseconds(350 * (attempt + 1)))
+            }
+        }
+        throw URLError(.cannotLoadFromNetwork)
     }
     
     func clearCachedImage(studioId: String) async {
@@ -127,7 +137,9 @@ struct CachedAsyncImage<Fallback: View>: View {
                 ProgressView()
             }
         }
-        .task {
+        .task(id: "\(studioId)|\(url.absoluteString)") {
+            image = nil
+            hasError = false
             if let data = await ImageCache.shared.loadImageData(for: url, studioId: studioId),
                let loadedImage = NSImage(data: data) {
                 self.image = loadedImage

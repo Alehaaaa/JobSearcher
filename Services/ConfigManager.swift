@@ -20,6 +20,35 @@ public class ConfigManager {
     public var studiosConfigURL: URL {
         return applicationSupportDirectory.appendingPathComponent(studiosFilename)
     }
+
+    /// Apply only migrations whose exact old rule is still present. This lets
+    /// bundled fixes work with an older downloaded main config while respecting
+    /// any future provider rule changes or user-edited configurations.
+    func applyingBundledRuleMigrations(_ data: Data) -> Data {
+        guard let url = Bundle.main.url(forResource: "location-rule-migrations", withExtension: "json"),
+              let migrations = (try? JSONSerialization.jsonObject(with: Data(contentsOf: url))) as? [[String: Any]],
+              var studios = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]] else {
+            return data
+        }
+        var changed = false
+        for index in studios.indices {
+            guard let id = studios[index]["id"] as? String,
+                  let migration = migrations.first(where: { $0["id"] as? String == id }),
+                  let oldRule = migration["old"], let newRule = migration["new"],
+                  var scraping = studios[index]["scraping"] as? [String: Any],
+                  var mapping = scraping["map"] as? [String: Any],
+                  let current = mapping["location"],
+                  NSDictionary(dictionary: ["rule": current]).isEqual(to: ["rule": oldRule]) else {
+                continue
+            }
+            mapping["location"] = newRule
+            scraping["map"] = mapping
+            studios[index]["scraping"] = scraping
+            changed = true
+        }
+        guard changed, let updated = try? JSONSerialization.data(withJSONObject: studios) else { return data }
+        return updated
+    }
     
     public func loadStudios() -> [Studio] {
         let fileManager = FileManager.default
@@ -30,11 +59,10 @@ public class ConfigManager {
         if fileManager.fileExists(atPath: studiosConfigURL.path) {
             do {
                 let data = try Data(contentsOf: studiosConfigURL)
-                loadedStudios = try decoder.decode([Studio].self, from: data)
+                loadedStudios = try decoder.decode([Studio].self, from: applyingBundledRuleMigrations(data))
             } catch {
                 print("Failed to load studios from App Support: \(error)")
-                // If it failed due to corruption, we might want to delete it so the next check redownloads it
-                try? fileManager.removeItem(at: studiosConfigURL)
+                // Preserve the user's file; use the bundled baseline until a valid update arrives.
             }
         }
         
@@ -42,7 +70,7 @@ public class ConfigManager {
         if loadedStudios.isEmpty, let bundleURL = Bundle.main.url(forResource: "studios", withExtension: "json") {
             do {
                 let data = try Data(contentsOf: bundleURL)
-                loadedStudios = try decoder.decode([Studio].self, from: data)
+                loadedStudios = try decoder.decode([Studio].self, from: applyingBundledRuleMigrations(data))
             } catch {
                 print("Failed to load studios from Bundle: \(error)")
             }
@@ -51,7 +79,8 @@ public class ConfigManager {
         // Handle sorting and deduplication
         let savedOrder = UserDefaults.standard.stringArray(forKey: "studioOrder") ?? []
         var seen = Set<String>()
-        let studioDict = Dictionary(uniqueKeysWithValues: loadedStudios.map { ($0.id, $0) })
+        var studioDict: [String: Studio] = [:]
+        for studio in loadedStudios { studioDict[studio.id] = studio }
         
         var sortedStudios = savedOrder.compactMap { id -> Studio? in
             if seen.contains(id) { return nil }
@@ -69,42 +98,39 @@ public class ConfigManager {
     }
     
     public func updateConfigIfNeeded() async -> Bool {
-        let commitApiUrl = URL(string: "https://api.github.com/repos/Alehaaaa/JobUI/commits?path=config/studios.json&per_page=1")!
         let rawContentUrl = URL(string: "https://raw.githubusercontent.com/Alehaaaa/JobUI/refs/heads/main/config/studios.json")!
         
         do {
-            var request = URLRequest(url: commitApiUrl)
+            var request = URLRequest(url: rawContentUrl, cachePolicy: .reloadIgnoringLocalCacheData)
             request.setValue("JobUI-mac-Updater", forHTTPHeaderField: "User-Agent")
-            
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+            // Conditional requests avoid GitHub API rate limits and unnecessary rewrites.
+            if let cachedData = try? Data(contentsOf: studiosConfigURL),
+               (try? JSONDecoder().decode([Studio].self, from: cachedData)) != nil {
+                if let etag = UserDefaults.standard.string(forKey: etagKey) {
+                    request.setValue(etag, forHTTPHeaderField: "If-None-Match")
+                }
+            }
+
             let (data, response) = try await URLSession.shared.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            guard let httpResponse = response as? HTTPURLResponse else {
                 return false
             }
-            
-            let commits = try JSONSerialization.jsonObject(with: data) as? [[String: Any]]
-            guard let latestCommit = commits?.first,
-                  let commitData = latestCommit["commit"] as? [String: Any],
-                  let committer = commitData["committer"] as? [String: Any],
-                  let dateStr = committer["date"] as? String else {
-                return false
-            }
-            
-            let savedDate = UserDefaults.standard.string(forKey: lastModifiedKey)
-            if savedDate == dateStr && FileManager.default.fileExists(atPath: studiosConfigURL.path) {
-                return false // Already up to date
-            }
-            
-            // Download new config
-            var contentRequest = URLRequest(url: rawContentUrl)
-            contentRequest.addValue("JobUI-mac-Updater", forHTTPHeaderField: "User-Agent")
-            contentRequest.addValue("application/json, text/plain, */*", forHTTPHeaderField: "Accept")
-            
-            let (newData, _) = try await URLSession.shared.data(for: contentRequest)
-            try newData.write(to: studiosConfigURL)
-            
-            UserDefaults.standard.set(dateStr, forKey: lastModifiedKey)
             UserDefaults.standard.set(Date(), forKey: lastCheckKey)
-            
+            if httpResponse.statusCode == 304 { return false }
+            guard httpResponse.statusCode == 200 else {
+                return false
+            }
+
+            let decoded = try JSONDecoder().decode([Studio].self, from: data)
+            guard !decoded.isEmpty else { return false }
+            if let oldData = try? Data(contentsOf: studiosConfigURL), oldData == data {
+                return false
+            }
+            try data.write(to: studiosConfigURL, options: .atomic)
+            UserDefaults.standard.set(httpResponse.value(forHTTPHeaderField: "ETag"), forKey: etagKey)
+            UserDefaults.standard.set(httpResponse.value(forHTTPHeaderField: "Last-Modified"), forKey: lastModifiedKey)
             return true
         } catch {
             print("Failed to update config: \(error)")
@@ -117,32 +143,35 @@ public class ConfigManager {
         
         do {
             // Download new config
-            let (newData, _) = try await URLSession.shared.data(from: rawContentUrl)
+            var request = URLRequest(url: rawContentUrl, cachePolicy: .reloadIgnoringLocalCacheData)
+            request.setValue("JobUI-mac-Updater", forHTTPHeaderField: "User-Agent")
+            let (newData, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+                throw URLError(.badServerResponse)
+            }
             let decoder = JSONDecoder()
             let newStudios = try decoder.decode([Studio].self, from: newData)
+            guard !newStudios.isEmpty else { throw URLError(.cannotParseResponse) }
             
             // Load current studios
             let currentStudios = loadStudios()
             
             // Compare and merge
-            var studiosDict = Dictionary(uniqueKeysWithValues: currentStudios.map { ($0.id, $0) })
+            let existingIDs = Set(currentStudios.map(\.id))
+            let incomingByID = Dictionary(newStudios.map { ($0.id, $0) }, uniquingKeysWith: { _, new in new })
             var addedCount = 0
-            var updatedCount = 0
-            
-            for newStudio in newStudios {
-                if studiosDict[newStudio.id] == nil {
-                    addedCount += 1
-                }
-                studiosDict[newStudio.id] = newStudio
+            var merged = currentStudios.map { incomingByID[$0.id] ?? $0 }
+            for newStudio in newStudios where !existingIDs.contains(newStudio.id) {
+                merged.append(newStudio)
+                addedCount += 1
             }
-            
-            updatedCount = newStudios.count - addedCount
+            let updatedCount = newStudios.count - addedCount
             
             // Save merged config
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-            let mergedData = try encoder.encode(Array(studiosDict.values))
-            try mergedData.write(to: studiosConfigURL)
+            let mergedData = try encoder.encode(merged)
+            try mergedData.write(to: studiosConfigURL, options: .atomic)
             
             UserDefaults.standard.set(Date(), forKey: lastCheckKey)
             
@@ -162,5 +191,51 @@ public class ConfigManager {
             print("Failed to update database: \(error)")
             return (false, "Failed to update database: \(error.localizedDescription)")
         }
+    }
+}
+
+/// First-seen history for the read-only job browser. The data is local and
+/// independent of the downloaded studios configuration.
+actor JobHistoryStore {
+    static let shared = JobHistoryStore()
+
+    private struct Entry: Codable {
+        let firstSeen: Date
+        var lastSeen: Date
+    }
+
+    private let fileURL: URL
+    private var entries: [String: Entry]
+
+    init(fileURL: URL? = nil) {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("JobUI", isDirectory: true)
+        self.fileURL = fileURL ?? base.appendingPathComponent("job-history.json")
+        if let data = try? Data(contentsOf: self.fileURL),
+           let loaded = try? JSONDecoder().decode([String: Entry].self, from: data) {
+            entries = loaded
+        } else {
+            entries = [:]
+        }
+    }
+
+    func annotate(_ jobs: [Job], studioID: String, now: Date = Date()) -> [Job] {
+        let retention = now.addingTimeInterval(-7 * 86_400)
+        entries = entries.filter { $0.value.lastSeen >= retention }
+        let annotated = jobs.map { job -> Job in
+            let key = "\(studioID)|\(job.link.absoluteString)|\(job.title)"
+            let firstSeen = entries[key]?.firstSeen ?? now
+            entries[key] = Entry(firstSeen: firstSeen, lastSeen: now)
+            return Job(title: job.title, link: job.link, location: job.location,
+                       extraLink: job.extraLink, firstSeen: firstSeen)
+        }
+        do {
+            try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            let data = try JSONEncoder().encode(entries)
+            try data.write(to: fileURL, options: .atomic)
+        } catch {
+            print("Could not persist job first-seen history: \(error)")
+        }
+        return annotated
     }
 }

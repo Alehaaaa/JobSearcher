@@ -1,0 +1,1685 @@
+[
+    {
+        "id": "disney",
+        "name": "Walt Disney Animation",
+        "logo_url": "https://tbcdn.talentbrew.com/company/391/gst_v1_0/img/logo_disney-careers_black.svg",
+        "careers_url": "https://www.disneycareers.com/en/search-jobs",
+        "scraping": {
+            "strategy": "html",
+            "params": {
+                "acm": "ALL",
+                "alrpm": "ALL",
+                "ascf": "[{\"key\":\"custom_fields.IndustryCustomField\",\"value\":\"Walt Disney Animation Studios\"}]"
+            },
+            "container": "a[data-job-id]",
+            "map": {
+                "title": "h2",
+                "link": {
+                    "selector": "",
+                    "attr": "href"
+                },
+                "location": "span.job-location"
+            }
+        }
+    },
+    {
+        "id": "ilm",
+        "name": "Industrial Light & Magic",
+        "logo_url": "https://www.ilm.com/wp-content/uploads/2014/12/ilm_logo_nav_black.svg",
+        "careers_url": "https://www.disneycareers.com/en/search-jobs",
+        "scraping": {
+            "strategy": "html",
+            "params": {
+                "acm": "ALL",
+                "alrpm": "ALL",
+                "ascf": "[{\"key\":\"custom_fields.IndustryCustomField\",\"value\":\"Industrial Light & Magic\"}]"
+            },
+            "container": "a[data-job-id]",
+            "map": {
+                "title": "h2",
+                "link": {
+                    "selector": "",
+                    "attr": "href"
+                },
+                "location": "span.job-location"
+            }
+        }
+    },
+    {
+        "id": "pixar",
+        "name": "Pixar",
+        "logo_url": "https://cdn.prod.website-files.com/64ea57571d50b02423c4505d/64f9e15b90d4d9e5678aeb32_pixar%20logo%20png.png",
+        "careers_url": "https://pixar.wd501.myworkdayjobs.com/wday/cxs/pixar/Pixar_External_Career_Site/jobs",
+        "website": "https://pixar.wd501.myworkdayjobs.com/Pixar_External_Career_Site",
+        "scraping": {
+            "strategy": "json",
+            "method": "POST",
+            "payload": {
+                "appliedFacets": {},
+                "limit": 20,
+                "searchText": ""
+            },
+            "path": "jobPostings[*]",
+            "map": {
+                "title": "title",
+                "link": "externalPath",
+                "location": "locationsText"
+            }
+        }
+    },
+    {
+        "id": "ranchito",
+        "name": "El Ranchito",
+        "logo_url": "https://barsvfx.com/wp-content/uploads/2023/10/El-Ranchito-Combination-Mark-Landscape-Black-RGB@2x-1.png",
+        "careers_url": "https://elranchito.es/careers/open-positions/",
+        "scraping": {
+            "strategy": "html",
+            "container": "ul.posts.posts--jobs li",
+            "map": {
+                "title": "h2",
+                "link": "a",
+                "location": "h5.post-date"
+            }
+        }
+    },
+    {
+        "id": "dreamworks",
+        "name": "DreamWorks",
+        "logo_url": "https://www.google.com/s2/favicons?domain=dreamworks.com&sz=256",
+        "careers_url": "https://www.nbcunicareers.com/api/opensearch/brjobs?_format=json&keyword=DreamWorks",
+        "website": "https://www.nbcunicareers.com/find-a-job?keyword=DreamWorks&cmpid=DreamWorks",
+        "scraping": {
+            "strategy": "json",
+            "path": "[0].rows[*]",
+            "map": {
+                "title": "title",
+                "link": "field_detailurl",
+                "location": "field_location"
+            }
+        }
+    },
+    {
+        "id": "sonypicturesanimation",
+        "name": "Sony Pictures Animation",
+        "logo_url": "https://www.sonypicturesanimation.com/themes/custom/spa2/images/spa_logo.svg",
+        "careers_url": "https://job-boards.greenhouse.io/sonypicturesanimation",
+        "scraping": {
+            "strategy": "html",
+            "container": "tr.job-post",
+            "map": {
+                "title": {
+                    "selector": "p",
+                    "exclude": ".tag-container"
+                },
+                "link": "a",
+                "location": "p.body__secondary"
+            }
+        }
+    },
+    {
+        "id": "sonypicturesimageworks",
+        "name": "Sony Pictures Imageworks",
+        "logo_url": "https://www.imageworks.com/themes/custom/topplus/logo.svg",
+        "careers_url": "https://job-boards.greenhouse.io/sonypicturesimageworks",
+        "scraping": {
+            "strategy": "html",
+            "container": "tr.job-post",
+            "map": {
+                "title": {
+                    "selector": "p",
+                    "exclude": ".tag-container"
+                },
+                "link": "a",
+                "location": "p.body__secondary"
+            }
+        }
+    },
+    {
+        "id": "blur",
+        "name": "Blur Studio",
+        "logo_url": "https://www.google.com/s2/favicons?domain=blur.com&sz=256",
+        "careers_url": "https://job-boards.greenhouse.io/blurstudio",
+        "website": "https://blur.com/careers",
+        "scraping": {
+            "strategy": "html",
+            "container": "tr.job-post",
+            "map": {
+                "title": {
+                    "selector": "p",
+                    "exclude": ".tag-container"
+                },
+                "link": "a",
+                "location": "p.body__secondary"
+            }
+        }
+    },
+    {
+        "id": "guerrillagames",
+        "name": "Guerrilla Games",
+        "logo_url": "https://s4-recruiting.cdn.greenhouse.io/external_greenhouse_job_boards/logos/401/033/200/original/Logo_Greenhouse.png",
+        "careers_url": "https://job-boards.greenhouse.io/guerrilla-games",
+        "scraping": {
+            "strategy": "html",
+            "container": "tr.job-post",
+            "map": {
+                "title": {
+                    "selector": "p",
+                    "exclude": ".tag-container"
+                },
+                "link": "a",
+                "location": "p.body__secondary"
+            }
+        }
+    },
+    {
+        "id": "dneg",
+        "name": "DNEG",
+        "logo_url": "https://www.dneg.com/favicon.svg",
+        "careers_url": "https://jobs.jobvite.com/double-negative-visual-effects/?nl=1&fr=true",
+        "website": "https://www.dneg.com/join-us/open-positions",
+        "scraping": {
+            "strategy": "html",
+            "container": "li.mb1",
+            "map": {
+                "title": "p",
+                "link": "a",
+                "location": "div.jv-job-list-location"
+            }
+        }
+    },
+    {
+        "id": "illumination",
+        "name": "Illumination",
+        "logo_url": "https://www.illumination.com/wp-content/uploads/2021/10/cropped-Screen-Shot-2021-10-21-at-1.48.09-PM-192x192.png",
+        "careers_url": "https://api.lever.co/v0/postings/illumination?mode=json",
+        "website": "https://www.illumination.com/homepage/careers/",
+        "scraping": {
+            "strategy": "json",
+            "path": "[*]",
+            "map": {
+                "title": "text",
+                "link": "hostedUrl",
+                "location": "categories.location"
+            }
+        }
+    },
+    {
+        "id": "fortiche",
+        "name": "Fortiche",
+        "logo_url": "https://fortiche.b-cdn.net/wp-content/uploads/2025/02/transparent-black-white_cache.gif",
+        "careers_url": "https://forticheprod.com/become-a-forticher/",
+        "scraping": {
+            "strategy": "html",
+            "container": ".my-loop a[href*='/job-offers/']:has(h5)",
+            "map": {
+                "title": "h5",
+                "link": {
+                    "selector": "",
+                    "attr": "href"
+                },
+                "location": {
+                    "selector": ".elementor-post-info__item--type-custom",
+                    "index": 1
+                }
+            }
+        }
+    },
+    {
+        "id": "mikros",
+        "name": "Mikros Animation",
+        "logo_url": "https://www.mikrosanimation.com/app/uploads/2025/11/Mikros-Animation-Footer-Logo-EN.svg",
+        "careers_url": "https://api.smartrecruiters.com/v1/companies/rodeofx/postings?language=en",
+        "website": "https://www.smartrecruiters.com/RodeoFX/",
+        "scraping": {
+            "strategy": "json",
+            "path": "content[*]",
+            "filter": {
+                "key": "department.label",
+                "startswith": "Mikros Animation"
+            },
+            "map": {
+                "title": "name",
+                "link": {
+                    "path": "id",
+                    "prefix": "https://www.smartrecruiters.com/RodeoFX/"
+                },
+                "location": "location.fullLocation"
+            }
+        }
+    },
+    {
+        "id": "steamroller",
+        "name": "Steamroller Animation",
+        "logo_url": "https://images.squarespace-cdn.com/content/v1/67f6636e2f4e905b54511328/1744200713785-AN4IHNUS164VDOH6YVXV/SteamrollerAnimation.png",
+        "careers_url": "https://ats.rippling.com/steamroller-animation/jobs",
+        "scraping": {
+            "strategy": "html",
+            "container": "div.css-aapqz6",
+            "map": {
+                "title": "a",
+                "link": "a",
+                "location": "span[data-icon='LOCATION_OUTLINE'] + p"
+            }
+        },
+        "website": ""
+    },
+    {
+        "id": "giant",
+        "name": "Giant Animation",
+        "logo_url": "https://giantanimation.ie/wp-content/themes/giant/assets/img/logo.png",
+        "careers_url": "https://giantanimation.ie/wp-json/wp/v2/pages/157?_fields=content",
+        "website": "https://giantanimation.ie/careers/",
+        "scraping": {
+            "strategy": "html",
+            "json_html_field": "content.rendered",
+            "container": ".g-careers .row .col-12",
+            "map": {
+                "title": "h4",
+                "link": "a",
+                "location": "span"
+            }
+        }
+    },
+    {
+        "id": "netflix",
+        "name": "Netflix Animation Studios",
+        "logo_url": "https://www.netflixanimation.com/_next/image?url=%2F_next%2Fstatic%2Fmedia%2F0_Nav-Bar_Logo_NAS-Red-White.3g448mmj06muz.png&w=3840&q=75",
+        "careers_url": "https://explore.jobs.netflix.net/api/apply/v2/jobs",
+        "website": "https://explore.jobs.netflix.net/careers",
+        "scraping": {
+            "strategy": "json",
+            "path": "positions[*]",
+            "params": {
+                "domain": "netflix.com",
+                "num": 100,
+                "sort_by": "relevance",
+                "Teams": [
+                    "Animation",
+                    "Feature Animation - Art",
+                    "Feature Animation - Editorial + Post",
+                    "Feature Animation - Production Management",
+                    "Feature Animation - Story",
+                    "Feature Animation"
+                ]
+            },
+            "map": {
+                "title": "name",
+                "link": "canonicalPositionUrl",
+                "location": "location"
+            }
+        }
+    },
+    {
+        "id": "iconcreative",
+        "name": "Icon Creative Studio",
+        "logo_url": "https://www.google.com/s2/favicons?domain=iconcreativestudio.com&sz=256",
+        "careers_url": "https://iconcreative.bamboohr.com/careers/list",
+        "scraping": {
+            "strategy": "json",
+            "path": "result[*]",
+            "map": {
+                "title": "jobOpeningName",
+                "link": {
+                    "path": "id",
+                    "prefix": "https://iconcreative.bamboohr.com/careers/"
+                },
+                "location": "location.city"
+            }
+        }
+    },
+    {
+        "id": "megalisvfx",
+        "name": "Megalis",
+        "logo_url": "https://images4.bamboohr.com/667951/logos/cropped.jpg",
+        "careers_url": "https://megalisvfx.bamboohr.com/careers/list",
+        "scraping": {
+            "strategy": "json",
+            "path": "result[*]",
+            "map": {
+                "title": "jobOpeningName",
+                "link": {
+                    "path": "id",
+                    "prefix": "https://megalisvfx.bamboohr.com/careers/"
+                },
+                "location": "location.city"
+            }
+        }
+    },
+    {
+        "id": "wildchild",
+        "name": "Wild Child Animation",
+        "logo_url": "https://ugc.production.linktr.ee/28f5b45a-f579-4a29-b7e2-8d373a1a361f_Wild-Child-Master-Logo-Strapline-Black.png?io=true&size=avatar-v3_0",
+        "careers_url": "https://wildchildanimation.com/careers",
+        "website": "https://linktr.ee/wildchildanimation",
+        "scraping": {
+            "strategy": "static"
+        }
+    },
+    {
+        "id": "flyingbark",
+        "name": "Flying Bark Productions",
+        "logo_url": "https://www.google.com/s2/favicons?domain=flyingbark.com.au&sz=256",
+        "careers_url": "https://flyingbark.bamboohr.com/careers/list",
+        "scraping": {
+            "strategy": "json",
+            "path": "result[*]",
+            "map": {
+                "title": "jobOpeningName",
+                "link": {
+                    "path": "id",
+                    "prefix": "https://flyingbark.bamboohr.com/careers/"
+                },
+                "location": "location.city, atsLocation.city"
+            }
+        }
+    },
+    {
+        "id": "rodeofx",
+        "name": "Rodeo FX",
+        "logo_url": "https://www.rodeofx.com/static/img/logo-rodeo.3e4b8e9e.svg",
+        "careers_url": "https://api.smartrecruiters.com/v1/companies/rodeofx/postings?language=en",
+        "website": "https://www.smartrecruiters.com/RodeoFX/",
+        "scraping": {
+            "strategy": "json",
+            "path": "content[*]",
+            "map": {
+                "title": "name",
+                "link": {
+                    "path": "id",
+                    "prefix": "https://www.smartrecruiters.com/RodeoFX/"
+                },
+                "location": "location.fullLocation"
+            }
+        }
+    },
+    {
+        "id": "framestore",
+        "name": "Framestore",
+        "logo_url": "https://careers.recruiteecdn.com/image/upload/production/images/BITW/CYm9wW_0Mq1Z.png",
+        "careers_url": "https://framestore.recruitee.com",
+        "scraping": {
+            "strategy": "html",
+            "container": "tr:has(a[href^='/o/'])",
+            "map": {
+                "title": "a[href^='/o/']",
+                "link": {
+                    "selector": "a[href^='/o/']",
+                    "attr": "href"
+                },
+                "location": ".custom-css-style-job-location",
+                "remove_location_from_title": true
+            }
+        }
+    },
+    {
+        "id": "skydance",
+        "name": "Skydance",
+        "logo_url": "https://upload.wikimedia.org/wikipedia/commons/6/60/Skydance_Animation_New_Logo.png",
+        "careers_url": "https://api.lever.co/v0/postings/skydance?mode=json",
+        "website": "https://www.skydance.com/careers",
+        "scraping": {
+            "strategy": "json",
+            "path": "[*]",
+            "map": {
+                "title": "text",
+                "link": "hostedUrl",
+                "location": "categories.location"
+            }
+        }
+    },
+    {
+        "id": "illusorium",
+        "name": "Illusorium",
+        "logo_url": "https://illusoriumstudios.com/wp-content/uploads/2023/09/isotipo_ill_100x100_white.png",
+        "careers_url": "https://illusorium-studios.factorial.es/sitemap.xml",
+        "website": "https://illusoriumstudios.com/careers/",
+        "scraping": {
+            "strategy": "rss",
+            "container": "url:has(loc)",
+            "map": {
+                "title": {
+                    "selector": "loc",
+                    "regex": "/job_posting/(.+)-[0-9]+$",
+                    "replace": {
+                        "old": "-",
+                        "new": " "
+                    },
+                    "title_case": true
+                },
+                "link": "loc",
+                "location": {
+                    "default": "Madrid"
+                }
+            },
+            "detail_page": {
+                "max_workers": 6,
+                "map": {
+                    "title": {
+                        "selector": "meta[property='og:title']",
+                        "attr": "content"
+                    },
+                    "location": {
+                        "selector": ".mb-8 ul li:nth-of-type(3) span.inline-block"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "littlezoo",
+        "name": "Little Zoo Studio",
+        "logo_url": "https://images.squarespace-cdn.com/content/v1/5bb12626c46f6d5eaedb2e5f/1562618648077-YR20L25ATBOFUVYLECMN/LZ_Website_Horizontal_LZ_Trans.png?format=300w",
+        "careers_url": "https://www.littlezoostudio.com/careers",
+        "scraping": {
+            "strategy": "html",
+            "container": "div.sqs-block.markdown-block:has(h2)",
+            "map": {
+                "title": "h2",
+                "link": {
+                    "find_next_sibling": "sqs-block-button",
+                    "selector": "a.sqs-block-button-element",
+                    "attr": "href"
+                },
+                "location": {
+                    "default": "Montpelier, Vermont"
+                }
+            }
+        }
+    },
+    {
+        "id": "twinpines",
+        "name": "Twin Pines",
+        "logo_url": "https://twinpines.es/templates/twinpines_two/images/logo.svg",
+        "careers_url": "https://twinpines.es/recruitment",
+        "scraping": {
+            "strategy": "html",
+            "container": "div.recruitment__list",
+            "map": {
+                "title": "h2",
+                "link": "a",
+                "location": {
+                    "default": "Madrid"
+                }
+            }
+        }
+    },
+    {
+        "id": "unitimage",
+        "name": "Unit Image",
+        "logo_url": "https://www.unit-image.fr/wp-content/themes/Impreza-child/img/loader.png",
+        "careers_url": "https://www.unit-image.fr/jobs/",
+        "scraping": {
+            "strategy": "html",
+            "container": "article.w-grid-item",
+            "map": {
+                "title": ".post_title",
+                "link": "a.w-grid-item-anchor",
+                "location": {
+                    "default": "Paris"
+                }
+            }
+        }
+    },
+    {
+        "id": "milkvfx",
+        "name": "Milk VFX",
+        "logo_url": "https://www.milk-vfx.com/es/wp-content/themes/milk-vfx-chisel/dist/assets/images/milk-vfx.c1703df7.svg",
+        "careers_url": "https://www.milk-vfx.com/careers/?loc=UK",
+        "scraping": {
+            "strategy": "html",
+            "container": "div.c-careers__content a",
+            "map": {
+                "title": ".c-career__title",
+                "link": "",
+                "location": {
+                    "find_previous": "h2"
+                }
+            }
+        }
+    },
+    {
+        "id": "goodbyekansas",
+        "name": "Goodbye Kansas",
+        "logo_url": "https://images.teamtailor-cdn.com/images/s3/teamtailor-production/logotype-v3/image_uploads/30eeee22-fd93-4ab3-ba54-c570a4d54c2b/original.png",
+        "careers_url": "https://goodbyekansas.teamtailor.com/jobs",
+        "scraping": {
+            "strategy": "html",
+            "container": "#jobs_list_container li",
+            "map": {
+                "title": "span",
+                "link": "a",
+                "location": {
+                    "selector": "div.mt-1.text-md span",
+                    "index": 1
+                }
+            }
+        }
+    },
+    {
+        "id": "airshipinteractive",
+        "name": "Airship Interactive",
+        "logo_url": "https://images.teamtailor-cdn.com/images/s3/teamtailor-production/logotype-v3/image_uploads/cbe79bd4-3626-45ee-ba63-e35467190fef/original.png",
+        "careers_url": "https://airshipinteractive.teamtailor.com/jobs",
+        "website": "",
+        "scraping": {
+            "strategy": "html",
+            "container": "#jobs_list_container li",
+            "map": {
+                "title": "a",
+                "link": "a",
+                "location": {
+                    "selector": "div.mt-4 span.inline-flex"
+                }
+            }
+        }
+    },
+    {
+        "id": "ilpvfx",
+        "name": "Important Looking Pirates VFX",
+        "logo_url": "https://www.ilpvfx.com/_astro/logo.DRIecYuS.svg",
+        "careers_url": "https://ilpvfx.teamtailor.com/jobs",
+        "scraping": {
+            "strategy": "html",
+            "container": "#jobs_list_container li",
+            "map": {
+                "title": "span",
+                "link": "a",
+                "location": {
+                    "selector": "div.mt-1.text-md span",
+                    "index": 1
+                }
+            }
+        }
+    },
+    {
+        "id": "thethirdfloor",
+        "name": "The Third Floor",
+        "logo_url": "https://cc-client-cdn.clearcompany.com/224aa8b1-7455-9afa-439f-0e0b9c9fa4fa/careersiteimages/stand_alone_custom_logo?_=1769990835",
+        "careers_url": "https://thethirdfloorinc.hrmdirect.com/employment/job-openings.php?search=true&",
+        "scraping": {
+            "strategy": "html",
+            "container": "tr.ReqRowClick",
+            "map": {
+                "title": ".posTitle a",
+                "link": {
+                    "selector": ".posTitle a",
+                    "attr": "href"
+                },
+                "location": {
+                    "selector": ".cities, .state",
+                    "index": 0,
+                    "default": "US"
+                }
+            }
+        }
+    },
+    {
+        "id": "outpostvfx",
+        "name": "Outpost VFX",
+        "logo_url": "https://outpost-vfx.com/img/logo--white.svg",
+        "careers_url": "https://api.smartrecruiters.com/v1/companies/OutpostVFX/postings/",
+        "website": "https://www.smartrecruiters.com/OutpostVFX/",
+        "scraping": {
+            "strategy": "json",
+            "path": "content[*]",
+            "map": {
+                "title": "name",
+                "link": {
+                    "path": "id",
+                    "prefix": "https://www.smartrecruiters.com/OutpostVFX/"
+                },
+                "location": "location.fullLocation"
+            }
+        }
+    },
+    {
+        "id": "nexusstudios",
+        "name": "Nexus Studios",
+        "logo_url": "https://images.squarespace-cdn.com/content/v1/5ae136547e3c3a14ad57c8cf/1571806561753-7LQRGI48E78EXGOTJIJ1/nexus.png",
+        "careers_url": "https://apply.workable.com/api/v3/accounts/nexusstudios/jobs",
+        "website": "https://apply.workable.com/nexusstudios/#jobs",
+        "scraping": {
+            "strategy": "json",
+            "method": "POST",
+            "path": "results[*]",
+            "map": {
+                "title": "title",
+                "link": {
+                    "path": "shortcode",
+                    "prefix": "https://apply.workable.com/nexusstudios/j/"
+                },
+                "location": "location.display, location.city + ', ' + location.country"
+            }
+        }
+    },
+    {
+        "id": "pixomondo",
+        "name": "Pixomondo",
+        "logo_url": "https://amcrs.de/wp-content/uploads/2022/05/PXO-Logo_Black-RGB-1.png",
+        "careers_url": "https://apply.workable.com/api/v3/accounts/pxo/jobs",
+        "website": "https://apply.workable.com/pxo/#jobs",
+        "scraping": {
+            "strategy": "json",
+            "method": "POST",
+            "path": "results[*]",
+            "map": {
+                "title": "title",
+                "link": {
+                    "path": "shortcode",
+                    "prefix": "https://apply.workable.com/pxo/j/"
+                },
+                "location": "location.display, location.city + ', ' + location.country"
+            }
+        }
+    },
+    {
+        "id": "risefx",
+        "name": "Rise FX",
+        "logo_url": "https://www.risefx.com/items/rise-visual-effect-studios-logo.svg",
+        "careers_url": "https://risefx.com/rise-visual-effects-studios-jobs.php",
+        "scraping": {
+            "strategy": "html",
+            "container": ".job-container",
+            "map": {
+                "title": ".jobs-header",
+                "link": {
+                    "selector": "a.jobs-apply-button-link",
+                    "attr": "href"
+                },
+                "location": {
+                    "selector": ".jobs-header",
+                    "regex": "(?<=-\\s)[a-zA-Z\\s]+(?=\\s+-)|(?<=\\()[a-zA-Z\\s]+(?=\\))"
+                },
+                "remove_location_from_title": true
+            }
+        }
+    },
+    {
+        "id": "eyeline",
+        "name": "Eyeline",
+        "logo_url": "https://lever-client-logos.s3.us-west-2.amazonaws.com/8e8f8187-fa13-4def-ac08-57ebddc51278-1760475914251.png",
+        "careers_url": "https://api.lever.co/v0/postings/Eyeline?mode=json",
+        "website": "https://jobs.lever.co/Eyeline",
+        "scraping": {
+            "strategy": "json",
+            "path": "[*]",
+            "map": {
+                "title": "text",
+                "link": "hostedUrl",
+                "location": "categories.location"
+            }
+        }
+    },
+    {
+        "id": "luma",
+        "name": "Luma Pictures",
+        "logo_url": "https://cdn.prod.website-files.com/67377ea5129a86abd6b702f5/6848ab534a9b362e28e4bff8_logo_oded.png",
+        "careers_url": "https://www.lumapictures.com/careers",
+        "scraping": {
+            "strategy": "html",
+            "container": "div.careers-holder p.paragraph-4",
+            "map": {
+                "title": {
+                    "selector": "",
+                    "regex": "(?<=Job Title: ).*?(?= Location:|$)"
+                },
+                "link": "a.link",
+                "location": {
+                    "selector": "",
+                    "regex": "(?<=Location: ).*?(?= Job Description:|$)"
+                }
+            }
+        }
+    },
+    {
+        "id": "digitaldomain",
+        "name": "Digital Domain",
+        "logo_url": "https://digitaldomain.com/wp-content/uploads/2020/02/dd-logo-no-animation.png",
+        "careers_url": "http://careers.digitaldomain.com/rss.php",
+        "website": "http://careers.digitaldomain.com/",
+        "scraping": {
+            "strategy": "html",
+            "container": "item",
+            "map": {
+                "title": {
+                    "selector": "title",
+                    "split": {
+                        "sep": ":",
+                        "index": 0
+                    }
+                },
+                "link": {
+                    "selector": "",
+                    "attr": "text",
+                    "regex": "(http://careers\\.digitaldomain\\.com/application\\.php\\?job_id=[^\\s]+)"
+                },
+                "location": {
+                    "selector": "title",
+                    "split": {
+                        "sep": ":",
+                        "index": 1
+                    },
+                    "replace": [
+                        {"old": "VC", "new": "Vancouver, Canada"},
+                        {"old": "PL", "new": "Playa Vista, United States"},
+                        {"old": "MR", "new": "Montreal, Canada"}
+                    ]
+                },
+                "extra_link": {
+                    "selector": "",
+                    "attr": "text",
+                    "regex": "(http://careers\\.digitaldomain\\.com/description/[^\\s\"]+\\.pdf)",
+                    "regex_link": "(http://careers\\.digitaldomain\\.com/description/[^\\s\"]+\\.pdf)"
+                }
+            }
+        }
+    },
+    {
+        "id": "trixter",
+        "name": "Trixter",
+        "logo_url": "https://www.trixter.de/wp-content/uploads/trixter-logo.png",
+        "careers_url": "https://www.trixter.de/jobs/",
+        "scraping": {
+            "strategy": "html",
+            "headers": {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            },
+            "container": "a.joblistings--job",
+            "map": {
+                "title": ".joblistings--title",
+                "link": {
+                    "selector": "",
+                    "attr": "href"
+                },
+                "location": {
+                    "selector": "",
+                    "attr": "data-city"
+                }
+            }
+        }
+    },
+    {
+        "id": "weta",
+        "name": "Wētā FX",
+        "logo_url": "https://careers.wetafx.co.nz/assets/logo-white-aba240515c42f0dfe83af315f98f2f894f5e72c330e4476a730e71247cb5cad2.png",
+        "careers_url": "https://careers.wetafx.co.nz/jobs",
+        "scraping": {
+            "strategy": "json_text",
+            "encoding": "utf-8",
+            "container": "script",
+            "json_text": {
+                "variable": "jobsData"
+            },
+            "map": {
+                "title": "name_with_override",
+                "link": {
+                    "path": "id",
+                    "prefix": "https://careers.wetafx.co.nz/jobs/"
+                },
+                "location": "location"
+            }
+        }
+    },
+    {
+        "id": "titmouse",
+        "name": "Titmouse",
+        "logo_url": "https://cdn3.toonboom.com/wp-content/uploads/2026/01/26140446/Titmouse_logo.png",
+        "careers_url": "https://titmouse.net/careers/",
+        "scraping": {
+            "strategy": "html",
+            "container": "li.titmouse-external-jobs__item",
+            "map": {
+                "title": "a",
+                "link": "a",
+                "location": {
+                    "find_previous": "h3"
+                },
+                "remove_location_from_title": true
+            }
+        }
+    },
+    {
+        "id": "mainframe",
+        "name": "Mainframe Studios",
+        "logo_url": "https://www.mainframe.ca/wp-content/uploads/2019/09/Mainframe_Logo_001.svg",
+        "website": "https://www.mainframe.ca/careers/",
+        "careers_url": "https://secure.ukgready.ca/ta/rest/ui/recruitment/companies/%7C6214859/job-requisitions",
+        "scraping": {
+            "strategy": "json",
+            "params": {
+                "offset": 1,
+                "size": 100,
+                "sort": "desc",
+                "ein_id": 18317277,
+                "lang": "en-US"
+            },
+            "headers": {
+                "Accept": "application/json",
+                "Referer": "https://secure.ukgready.ca/",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            "path": "job_requisitions[*]",
+            "map": {
+                "title": "job_title",
+                "link": {
+                    "path": "id",
+                    "prefix": "https://secure.ukgready.ca/ta/6214859.careers?ShowJob=",
+                    "suffix": "&ein_id=18317277"
+                },
+                "location": "location.city + ', ' + location.state + ', ' + location.country, location.city + ', ' + location.state, location.city"
+            }
+        }
+    },
+    {
+        "id": "flyingwildhog",
+        "name": "Flying Wild Hog",
+        "logo_url": "https://storage.googleapis.com/fwh-website.appspot.com/1/2019/03/fwh-logo.png",
+        "careers_url": "https://flyingwildhog-open-positions-form.productive24.com/v1/list/fetch",
+        "website": "https://flyingwildhog.com/jobs/",
+        "scraping": {
+            "strategy": "json",
+            "method": "POST",
+            "headers": {
+                "Accept": "application/json, text/plain, */*",
+                "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
+            },
+            "form_data": {
+                "code": "list",
+                "limit": "50",
+                "offset": "0",
+                "filter": "{}",
+                "sort": "{}"
+            },
+            "path": "data[*]",
+            "map": {
+                "title": "offer_name",
+                "link": "url",
+                "location": "location"
+            }
+        }
+    },
+    {
+        "id": "brownbag",
+        "name": "Brown Bag Films",
+        "logo_url": "https://www.brownbagfilms.com/themes/custom/misti/logo.svg",
+        "website": "https://milo-hr.my.salesforce-sites.com/recruit/fRecruit__ApplyJobList",
+        "careers_url": [
+            "https://milo-hr.my.salesforce-sites.com/recruit/fRecruit__ApplyJobList?portal=Toronto",
+            "https://milo-hr.my.salesforce-sites.com/recruit/fRecruit__ApplyJobList?portal=Dublin"
+        ],
+        "scraping": {
+            "strategy": "html",
+            "container": "tr.dataRow",
+            "map": {
+                "title": ".dataCell a",
+                "link": {
+                    "selector": ".dataCell a",
+                    "attr": "href",
+                    "prefix": "https://milo-hr.my.salesforce-sites.com"
+                },
+                "location": {
+                    "source": "url",
+                    "regex": "portal=([^&]+)"
+                }
+            }
+        }
+    },
+    {
+        "id": "ubisoft",
+        "name": "Ubisoft",
+        "logo_url": "https://playtest.ubisoft.com/Ubisoft_logo.png",
+        "careers_url": "https://avcvysejs1-dsn.algolia.net/1/indexes/*/queries?x-algolia-agent=Algolia%20for%20JavaScript%20(4.8.4)%3B%20Browser%20(lite)%3B%20JS%20Helper%20(3.11.0)%3B%20react%20(16.12.0)%3B%20react-instantsearch%20(6.8.3)&x-algolia-api-key=d2ec5782c4eb549092cfa4ed5062599a&x-algolia-application-id=AVCVYSEJS1",
+        "website": "https://www.ubisoft.com/en-us/company/careers/search?query=",
+        "scraping": {
+            "strategy": "json",
+            "method": "POST",
+            "payload": {
+                "requests": [
+                    {
+                        "indexName": "jobs_en-us_default",
+                        "params": "facets=%5B%22jobFamily%22%2C%22team%22%2C%22countryCode%22%2C%22cities%22%2C%22contractType%22%2C%22workFlexibility%22%2C%22graduateProgram%22%5D&highlightPostTag=%3C%2Fais-highlight-0000000000%3E&highlightPreTag=%3Cais-highlight-0000000000%3E&maxValuesPerFacet=100&page=0&query=&tagFilters=&hitsPerPage=1000"
+                    }
+                ]
+            },
+            "path": "results[0].hits[*]",
+            "map": {
+                "title": "title",
+                "link": "link",
+                "location": {
+                    "path": "city + ', ' + countryCode",
+                    "replace": [
+                        {"old": ", bg", "new": ", Bulgaria"},
+                        {"old": ", br", "new": ", Brazil"},
+                        {"old": ", ca", "new": ", Canada"},
+                        {"old": ", cn", "new": ", China"},
+                        {"old": ", de", "new": ", Germany"},
+                        {"old": ", es", "new": ", Spain"},
+                        {"old": ", fr", "new": ", France"},
+                        {"old": ", gb", "new": ", United Kingdom"},
+                        {"old": ", in", "new": ", India"},
+                        {"old": ", ro", "new": ", Romania"},
+                        {"old": ", se", "new": ", Sweden"},
+                        {"old": ", sg", "new": ", Singapore"},
+                        {"old": ", ua", "new": ", Ukraine"},
+                        {"old": ", vn", "new": ", Vietnam"}
+                    ]
+                }
+            }
+        }
+    },
+    {
+        "id": "cinesite",
+        "name": "Cinesite",
+        "logo_url": "https://cinesite.com/wp-content/themes/cinesite/vt-images/header-logo.svg",
+        "careers_url": [
+            "https://cinesitelondon.bamboohr.com/careers/list",
+            "https://cinesitemontreal.bamboohr.com/careers/list",
+            "https://cinesitevancouver.bamboohr.com/careers/list"
+        ],
+        "scraping": {
+            "strategy": "json",
+            "path": "result[*]",
+            "map": {
+                "title": "jobOpeningName",
+                "link": "id",
+                "location": "location.city"
+            }
+        }
+    },
+    {
+        "id": "platige",
+        "name": "Platige Image",
+        "logo_url": "https://platige.com/wp-content/uploads/2023/03/cropped-PI_logo2.png",
+        "careers_url": "https://platige.com/careers/",
+        "scraping": {
+            "strategy": "html",
+            "container": ".career-block",
+            "map": {
+                "title": "h3",
+                "link": "a.career-btdwn",
+                "location": {
+                    "selector": "h3",
+                    "regex": "^([^:]+):",
+                    "default": "Warsaw"
+                },
+                "remove_location_from_title": true
+            }
+        }
+    },
+    {
+        "id": "riot",
+        "name": "Riot Games",
+        "logo_url": "https://frikiup.co/wp-content/uploads/2022/02/002_RG_2021_FULL_LOCKUP_OFFWHITE.png",
+        "careers_url": "https://www.riotgames.com/en/work-with-us",
+        "scraping": {
+            "strategy": "html",
+            "container": "li.job-row--body",
+            "map": {
+                "title": ".job-row__col--primary",
+                "link": "a.js-job-url",
+                "location": {
+                    "selector": ".job-row__col--secondary",
+                    "index": "2"
+                }
+            }
+        }
+    },
+    {
+        "id": "image-engine",
+        "name": "Image Engine",
+        "logo_url": "https://image-engine.com/wp-content/uploads/2018/06/Logo_White.png",
+        "careers_url": "https://imageengine.bamboohr.com/careers/list",
+        "scraping": {
+            "strategy": "json",
+            "path": "result[*]",
+            "map": {
+                "title": "jobOpeningName",
+                "link": "id",
+                "location": "location.city"
+            }
+        }
+    },
+    {
+        "id": "oneofus",
+        "name": "One of Us",
+        "logo_url": "https://workable-application-form.s3.us-east-1.amazonaws.com/advanced/production/667018513e6590e6b6d8cb1f/d17fe696-7624-9b3f-ab4a-0ae70893f65c",
+        "careers_url": "https://apply.workable.com/api/v3/accounts/one-of-us/jobs",
+        "website": "https://apply.workable.com/one-of-us/#jobs",
+        "scraping": {
+            "strategy": "json",
+            "method": "POST",
+            "path": "results[*]",
+            "map": {
+                "title": "title",
+                "link": {
+                    "path": "shortcode",
+                    "prefix": "https://apply.workable.com/one-of-us/j/"
+                },
+                "location": "location.display, location.city + ', ' + location.country"
+            }
+        }
+    },
+    {
+        "id": "liquiddevelopment",
+        "name": "Liquid Development",
+        "logo_url": "https://workable-application-form.s3.amazonaws.com/advanced/production/624f37fd3502df6fb80dd89d/afd30151-7d8f-956d-895d-ace7cfa0f39a",
+        "careers_url": "https://apply.workable.com/api/v3/accounts/liquid-development/jobs",
+        "website": "https://apply.workable.com/liquid-development/#jobs",
+        "scraping": {
+            "strategy": "json",
+            "method": "POST",
+            "path": "results[*]",
+            "map": {
+                "title": "title",
+                "link": {
+                    "path": "shortcode",
+                    "prefix": "https://apply.workable.com/liquid-development/j/"
+                },
+                "location": "location.display, location.city + ', ' + location.country"
+            }
+        }
+    },
+    {
+        "id": "threedoubles",
+        "name": "3Doubles Producciones",
+        "logo_url": "https://www.notodoanimacion.es/wp-content/uploads/2026/01/logo-3Doubles-Producciones-S.L-3.webp",
+        "careers_url": "https://3doubles.factorial.es/sitemap.xml",
+        "website": "https://3doubles.factorial.es/#jobs",
+        "scraping": {
+            "strategy": "rss",
+            "container": "url:has(loc)",
+            "map": {
+                "title": {
+                    "selector": "loc",
+                    "regex": "/job_posting/(.+)-[0-9]+$",
+                    "replace": {
+                        "old": "-",
+                        "new": " "
+                    },
+                    "title_case": true
+                },
+                "link": "loc",
+                "location": {
+                    "default": "Santa Cruz de Tenerife"
+                }
+            },
+            "detail_page": {
+                "max_workers": 6,
+                "map": {
+                    "title": {
+                        "selector": "meta[property='og:title']",
+                        "attr": "content"
+                    },
+                    "location": {
+                        "selector": ".mb-8 ul li:nth-of-type(3) span.inline-block"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "lightbox",
+        "name": "Lightbox Animation Studios",
+        "logo_url": "https://lbox.es/wp-content/uploads/2021/02/logo_Lighbox-Animation-Studios_alpha.png",
+        "careers_url": "https://lightbox-animation-studios.jobs.personio.com/search.json",
+        "website": "https://lightbox-animation-studios.jobs.personio.com/",
+        "scraping": {
+            "strategy": "json",
+            "path": "[*]",
+            "map": {
+                "title": "name",
+                "link": {
+                    "path": "id",
+                    "prefix": "https://lightbox-animation-studios.jobs.personio.com/job/"
+                },
+                "location": "office"
+            }
+        }
+    },
+    {
+        "id": "hampa",
+        "name": "Hampa Studio",
+        "logo_url": "https://hampastudio.com/wp-content/uploads/2024/07/Recurso-3-1.webp",
+        "careers_url": "https://hampastudio.teamtailor.com/jobs",
+        "scraping": {
+            "strategy": "html",
+            "container": "#jobs_list_container li",
+            "map": {
+                "title": "a",
+                "link": "a",
+                "location": {
+                    "selector": "div.mt-4 span.inline-flex"
+                }
+            }
+        }
+    },
+    {
+        "id": "realtimeuk",
+        "name": "Realtime",
+        "logo_url": "https://cdn.80.lv/api/upload/vendor/502/607d4bd09d7a6.png",
+        "careers_url": "https://careers.realtimeuk.com/jobs",
+        "scraping": {
+            "strategy": "html",
+            "container": "#jobs_list_container li",
+            "map": {
+                "title": "a",
+                "link": "a",
+                "location": "div.mt-1.text-md"
+            }
+        }
+    },
+    {
+        "id": "superprod",
+        "name": "Superprod",
+        "logo_url": "https://api.superprod.net/upload/media/superprod-logo.svg",
+        "careers_url": "https://careers.werecruit.io/en/superprod",
+        "scraping": {
+            "strategy": "json_text",
+            "json_text": {
+                "variable": "allOffers"
+            },
+            "map": {
+                "title": "TitleTranslated",
+                "link": {
+                    "path": "Slug",
+                    "prefix": "https://careers.werecruit.io/en/superprod/offers/"
+                },
+                "location": "Address_City"
+            }
+        }
+    },
+    {
+        "id": "atlantis",
+        "name": "Atlantis",
+        "logo_url": "https://atlantisanimation.com/app/uploads/2023/01/Atlantis-44-Symbol-DEFINITIVE-1.png",
+        "careers_url": "https://careers.werecruit.io/en/atlantis",
+        "scraping": {
+            "strategy": "json_text",
+            "json_text": {
+                "variable": "allOffers"
+            },
+            "map": {
+                "title": "TitleTranslated",
+                "link": {
+                    "path": "Slug",
+                    "prefix": "https://careers.werecruit.io/en/atlantis/offers/"
+                },
+                "location": "Address_City"
+            }
+        }
+    },
+    {
+        "id": "wildbrain",
+        "name": "WildBrain",
+        "logo_url": "https://static.wixstatic.com/media/383274_3460ae4378194f6faf54ab373b9004e2~mv2.png",
+        "careers_url": "https://wildbrain-career.talent-soft.com/accueil.aspx?LCID=1033",
+        "scraping": {
+            "strategy": "html",
+            "container": "li.ts-offer-list-item",
+            "map": {
+                "title": "h3.ts-offer-list-item__title a",
+                "link": {
+                    "selector": "h3.ts-offer-list-item__title a",
+                    "attr": "href",
+                    "prefix": "https://wildbrain-career.talent-soft.com"
+                },
+                "location": {
+                    "selector": "ul.ts-offer-list-item__description li.noBorder",
+                    "index": "0",
+                    "default": "Vancouver"
+                }
+            }
+        }
+    },
+    {
+        "id": "buck",
+        "name": "Buck",
+        "logo_url": "https://prowly-prod.s3.eu-west-1.amazonaws.com/uploads/press_rooms/company_logos/30294/538d3032a6f3298ca57cbbfb0c21d726.png",
+        "careers_url": "https://buck.co/careers",
+        "scraping": {
+            "strategy": "json_text",
+            "container": "script#__NEXT_DATA__",
+            "json_text": {
+                "regex": "(.*)"
+            },
+            "path": "props.pageProps.page.modules[*].jobs[*]",
+            "map": {
+                "title": "title",
+                "link": "absoluteUrl",
+                "location": "locationName"
+            }
+        }
+    },
+    {
+        "id": "bluezoo",
+        "name": "Blue Zoo",
+        "logo_url": "https://careers.blue-zoo.co.uk/images/logo-rev.png",
+        "careers_url": "https://careers.blue-zoo.co.uk/vacancies/vacancy-search-results.aspx?view=list",
+        "scraping": {
+            "strategy": "html",
+            "container": "#ctl00_ContentContainer_ctl00_VacancyListView div.vsr-job",
+            "map": {
+                "title": "h2.vsr-job__title a",
+                "link": {
+                    "selector": "h2.vsr-job__title a",
+                    "attr": "href",
+                    "prefix": "https://careers.blue-zoo.co.uk/vacancies/"
+                },
+                "location": "div[data-id='div_content_VacV_LocationID'] > span"
+            }
+        }
+    },
+    {
+        "id": "squeeze",
+        "name": "Squeeze Studio",
+        "logo_url": "https://careers.recruiteecdn.com/image/upload/q_auto,f_auto,w_400,c_limit/production/images/A9-8/5JM2qBi3Lr06.png",
+        "careers_url": "https://squeezestudio.recruitee.com/l/en/",
+        "scraping": {
+            "strategy": "json_text",
+            "json_text": {
+                "regex": "data-props=\"([^\"]+)\"",
+                "unescape": true
+            },
+            "path": "appConfig.offers[*]",
+            "map": {
+                "title": "translations.en.title",
+                "link": {
+                    "path": "slug",
+                    "prefix": "https://squeezestudio.recruitee.com/l/en/o/"
+                },
+                "location": "city"
+            }
+        }
+    },
+    {
+        "id": "zoicstudios",
+        "name": "Zoic Studios",
+        "logo_url": "https://images.squarespace-cdn.com/content/v1/65f9d8f7a01fc94298a99a6e/94a55c4a-729b-40ce-8be4-7d34999f5763/ZOIC._transparent_logo_v2.png?format=1500w",
+        "careers_url": "https://zoicstudios.applytojob.com/apply/",
+        "scraping": {
+            "strategy": "html",
+            "container": ".jobs-list .list-group-item",
+            "map": {
+                "title": "h3.list-group-item-heading a",
+                "link": "h3.list-group-item-heading a",
+                "location": {
+                    "selector": "ul.list-inline li",
+                    "index": 0
+                }
+            }
+        }
+    },
+    {
+        "id": "mrxfx",
+        "name": "Mr. X",
+        "logo_url": "https://mrxfx.com/wp-content/uploads/2025/06/mrx_logo_v002_RGB_FooterV3-768x366.png",
+        "careers_url": "https://mrxfx.com/careers/",
+        "scraping": {
+            "strategy": "html",
+            "container": ".e-loop-item",
+            "map": {
+                "title": "h2.elementor-heading-title a",
+                "link": "h2.elementor-heading-title a",
+                "location": {
+                    "default": "Toronto"
+                }
+            }
+        }
+    },
+    {
+        "id": "craftyapes",
+        "name": "Crafty Apes",
+        "logo_url": "https://www.bspny.com/hs-fs/hubfs/bsplogoscroller_craftyapes.png?width=400&height=210&name=bsplogoscroller_craftyapes.png",
+        "careers_url": "https://jobs.dayforcehcm.com/api/geo/craftyapes/jobposting/search",
+        "website": "https://jobs.dayforcehcm.com/en-US/craftyapes/CANDIDATEPORTAL",
+        "scraping": {
+            "strategy": "json",
+            "method": "POST",
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "pre_visit": {
+                "url": "https://jobs.dayforcehcm.com/en-US/craftyapes/CANDIDATEPORTAL",
+                "csrf": {
+                    "cookie": "__Host-next-auth.csrf-token",
+                    "unescape": true,
+                    "split": "|",
+                    "header": "X-CSRF-TOKEN"
+                }
+            },
+            "payload": {
+                "clientNamespace": "craftyapes",
+                "jobBoardCode": "CANDIDATEPORTAL",
+                "cultureCode": "en-US",
+                "distanceUnit": 0,
+                "paginationStart": 0
+            },
+            "path": "jobPostings[*]",
+            "map": {
+                "title": "jobTitle",
+                "link": {
+                    "path": "jobPostingId",
+                    "prefix": "https://jobs.dayforcehcm.com/en-US/craftyapes/CANDIDATEPORTAL/jobs/"
+                },
+                "location": "postingLocations[0].formattedAddress"
+            }
+        }
+    },
+    {
+        "id": "kojimaproductions",
+        "name": "Kojima Productions",
+        "logo_url": "https://www.kojimaproductions.jp/themes/kojima_productions/images/lg.kjp.white.png",
+        "careers_url": "https://www.kojimaproductions.jp/kjpviewloader/load",
+        "website": "https://www.kojimaproductions.jp/en/careers",
+        "scraping": {
+            "strategy": "html",
+            "method": "POST",
+            "headers": {
+                "Content-Type": "application/json",
+                "Origin": "https://www.kojimaproductions.jp",
+                "Referer": "https://www.kojimaproductions.jp/en/careers"
+            },
+            "payload": {
+                "viewName": "kjp_view_job_listing",
+                "viewDisplayBase": "kjp_view_job_listing__",
+                "langCode": "en",
+                "inputs": [
+                    {
+                        "name": "jobDiscipline",
+                        "value": "All"
+                    },
+                    {
+                        "name": "jobLocation",
+                        "value": "All"
+                    }
+                ],
+                "page": 0,
+                "writeDate": 1770422442209
+            },
+            "container": "div.job-listing-item",
+            "map": {
+                "title": ".title",
+                "location": ".location",
+                "link": {
+                    "selector": "a",
+                    "attr": "href",
+                    "prefix": "https://www.kojimaproductions.jp"
+                }
+            }
+        }
+    },
+    {
+        "id": "industrialbrothers",
+        "name": "Industrial Brothers",
+        "logo_url": "https://www.industrialbrothers.com/wp-content/themes/industrialbrothers/img/industrial-brothers-logo.svg",
+        "careers_url": "https://industrialbrothers.applytojobs.ca/",
+        "scraping": {
+            "strategy": "html",
+            "container": "article.job-posting",
+            "map": {
+                "title": "a.text-lg",
+                "link": "a",
+                "location": {
+                    "selector": "div.text-xs",
+                    "regex": "(?i)(?:hybrid\\s+)?(.*?)(?=\\s*\\.|\\s*$)"
+                }
+            }
+        }
+    },
+    {
+        "id": "upp",
+        "name": "UPP",
+        "logo_url": "https://www.upp.cz/favicon.png",
+        "careers_url": "https://www.upp.cz/careers",
+        "scraping": {
+            "strategy": "html",
+            "container": "section.c-career-positions div.c-list-items > a",
+            "map": {
+                "title": "h3",
+                "link": {
+                    "attr": "href",
+                    "prefix": "https://www.upp.cz"
+                },
+                "location": {
+                    "selector": ".c-tag--default",
+                    "index": 1
+                }
+            }
+        }
+    },
+    {
+        "id": "bohemia",
+        "name": "Bohemia Interactive",
+        "logo_url": "https://careers.bohemia.net/images/careers-logo.svg",
+        "careers_url": "https://careers.bohemia.net/en/open-positions.data",
+        "website": "https://careers.bohemia.net/en/open-positions",
+        "scraping": {
+            "strategy": "remix",
+            "headers": {
+                "Accept": "*/*",
+                "Referer": "https://careers.bohemia.net/en/open-positions"
+            },
+            "path": "routes/open-positions/index/route.data.positions[*]",
+            "map": {
+                "title": "title",
+                "link": {
+                    "path": "slug",
+                    "prefix": "https://careers.bohemia.net/en/open-positions/"
+                },
+                "location": {
+                    "path": "locations[*].title",
+                    "join": "; "
+                }
+            }
+        }
+    },
+    {
+        "id": "pfx",
+        "name": "PFX",
+        "logo_url": "https://images.teamtailor-cdn.com/images/s3/teamtailor-production/logotype-v3/image_uploads/f0856abc-ada0-4aae-9a5a-1e94317f1ce4/original.png",
+        "careers_url": "https://pfx.teamtailor.com/jobs",
+        "scraping": {
+            "strategy": "html",
+            "container": "#jobs_list_container li",
+            "map": {
+                "title": "a",
+                "link": "a",
+                "location": {
+                    "selector": "div.text-md span",
+                    "index": -1
+                }
+            }
+        }
+    },
+    {
+        "id": "warhorse",
+        "name": "Warhorse Studios",
+        "logo_url": "https://powerups.es/wp-content/uploads/2020/06/6efiytbgbp_WarhorseStudios_Light_Alpha-1.png",
+        "careers_url": "https://warhorsestudios.breezy.hr/",
+        "scraping": {
+            "strategy": "html",
+            "container": "li.position",
+            "map": {
+                "title": "h2",
+                "link": ".position-details a",
+                "location": "li.location span"
+            }
+        }
+    },
+    {
+        "id": "cdprojektred",
+        "name": "CD Projekt RED",
+        "logo_url": "https://www.cdprojektred.com/build/images/img/logo-3b5826be.svg",
+        "careers_url": "https://api.smartrecruiters.com/v1/companies/CDPROJEKTRED/postings?language=en",
+        "website": "https://www.cdprojektred.com/en/jobs",
+        "scraping": {
+            "strategy": "json",
+            "path": "content[*]",
+            "map": {
+                "title": "name",
+                "link": {
+                    "path": "id",
+                    "prefix": "https://www.smartrecruiters.com/CDPROJEKTRED/"
+                },
+                "location": "location.fullLocation"
+            }
+        }
+    },
+    {
+        "id": "techland",
+        "name": "Techland",
+        "logo_url": "https://www.google.com/s2/favicons?domain=techland.net&sz=256",
+        "careers_url": "https://techland.net/job-offers",
+        "scraping": {
+            "strategy": "html",
+            "container": "a[href*='job-offers/']",
+            "map": {
+                "title": "",
+                "link": "",
+                "location": {
+                    "default": "Wroclaw, Poland"
+                }
+            }
+        }
+    },
+    {
+        "id": "pixelzoo",
+        "name": "Pixel Zoo",
+        "logo_url": "https://pixelzoo.com.au/wp-content/uploads/2023/07/Logo-Medium.png",
+        "careers_url": "https://pixelzoo.com.au/wp-json/wp/v2/pages/1466?_fields=content",
+        "website": "https://pixelzoo.com.au/careers/",
+        "scraping": {
+            "strategy": "html",
+            "headers": {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            },
+            "json_html_field": "content.rendered",
+            "container": ".elementor-column.elementor-top-column:not(.elementor-hidden-desktop):has(a.elementor-button[href*='/careers/'])",
+            "map": {
+                "title": ".elementor-heading-title",
+                "link": ".elementor-button",
+                "location": {
+                    "default": "North Lakes, Brisbane, Australia"
+                }
+            }
+        }
+    },
+    {
+        "id": "atomiccartoons",
+        "name": "Atomic Cartoons",
+        "logo_url": "https://www.atomiccartoons.com/_next/static/media/logo.75016e3f.png",
+        "careers_url": "https://boards-api.greenhouse.io/v1/boards/atomiccartoons/jobs",
+        "website": "https://www.atomiccartoons.com/careers",
+        "scraping": {
+            "strategy": "json",
+            "path": "jobs[*]",
+            "map": {
+                "title": "title",
+                "link": "absolute_url",
+                "location": "location.name"
+            }
+        }
+    },
+    {
+        "id": "laika",
+        "name": "LAIKA",
+        "logo_url": "https://www.laika.com/apple-icon.png?96445e204115ce7d",
+        "careers_url": "https://boards-api.greenhouse.io/v1/boards/laika/jobs",
+        "website": "https://www.laika.com/careers",
+        "scraping": {
+            "strategy": "json",
+            "path": "jobs[*]",
+            "map": {
+                "title": "title",
+                "link": "absolute_url",
+                "location": "location.name"
+            }
+        }
+    },
+    {
+        "id": "bentobox",
+        "name": "Bento Box Entertainment",
+        "logo_url": "https://static.wixstatic.com/media/525d50_e21f01dc6e5149138a1db40440cab7f6~mv2.png",
+        "careers_url": "https://api.lever.co/v0/postings/bentoboxent?mode=json",
+        "website": "https://www.bentoboxent.com/careers",
+        "scraping": {
+            "strategy": "json",
+            "path": "[*]",
+            "map": {
+                "title": "text",
+                "link": "hostedUrl",
+                "location": "categories.location"
+            }
+        }
+    },
+    {
+        "id": "mercuryfilmworks",
+        "name": "Mercury Filmworks",
+        "logo_url": "https://mercuryfilmworks.b-cdn.net/app/uploads/2022/12/social-image.jpg",
+        "careers_url": "https://mercuryfilmworks.bamboohr.com/careers/list",
+        "website": "https://mercuryfilmworks.com/careers/",
+        "scraping": {
+            "strategy": "json",
+            "path": "result[*]",
+            "map": {
+                "title": "jobOpeningName",
+                "link": {
+                    "path": "id",
+                    "prefix": "https://mercuryfilmworks.bamboohr.com/careers/"
+                },
+                "location": "location.city"
+            }
+        }
+    },
+    {
+        "id": "fusefx",
+        "name": "FOLKS (FuseFX)",
+        "logo_url": "https://folksvfx.com/wp-content/uploads/fbrfg/apple-touch-icon.png",
+        "careers_url": "https://api.smartrecruiters.com/v1/companies/FuseFX/postings?limit=100",
+        "website": "https://folksvfx.com/careers/open-positions/",
+        "scraping": {
+            "strategy": "json",
+            "path": "content[*]",
+            "map": {
+                "title": "name",
+                "link": {
+                    "path": "id",
+                    "prefix": "https://jobs.smartrecruiters.com/FuseFX/"
+                },
+                "location": "location.fullLocation"
+            }
+        }
+    },
+    {
+        "id": "cartoonsaloon",
+        "name": "Cartoon Saloon",
+        "logo_url": "https://www.cartoonsaloon.ie/wp-content/uploads/2020/10/CS_Logo_White-300x143.webp",
+        "careers_url": "https://api.occupop.com/api/jobs-frame/gyC74fStqF0KlxPdAaTDrq0Fvq809F1P2PsSogLMeYVWw1R9xW?search=1&button=Apply&visibility=external&fields=title,type,location,sector",
+        "website": "https://www.cartoonsaloon.ie/irish-animation-studio/careers/",
+        "scraping": {
+            "strategy": "html",
+            "container": "tbody.searchable tr",
+            "map": {
+                "title": "h4.title a",
+                "link": "h4.title a",
+                "location": "small.location"
+            }
+        }
+    },
+    {
+        "id": "aardman",
+        "name": "Aardman Animations",
+        "logo_url": "https://www.aardman.com/media/32qdwhkf/aardpattern_colour-seo.jpg?rmode=crop&width=1200&height=627",
+        "careers_url": "https://jobs.aardman.com/vacancies/vacancy-search-results.aspx?view=list",
+        "website": "https://www.aardman.com/careers/",
+        "scraping": {
+            "strategy": "html",
+            "container": "div.vsr-job",
+            "map": {
+                "title": "h2.vsr-job__title a",
+                "link": "h2.vsr-job__title a",
+                "location": "div[data-id='div_content_VacV_LocationID'] > span"
+            }
+        }
+    }
+]

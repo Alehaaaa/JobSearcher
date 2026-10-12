@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F0A15E1A2E2D15F800606BCB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F0A15E1B2E2D15F800606BCB /* Assets.xcassets */; };
+		F0A15E1D2E2D15F800606BCB /* studios.json in Resources */ = {isa = PBXBuildFile; fileRef = F0A15E1E2E2D15F800606BCB /* studios.json */; };
+		F0A15E262E2D15F800606BCB /* location-rule-migrations.json in Resources */ = {isa = PBXBuildFile; fileRef = F0A15E252E2D15F800606BCB /* location-rule-migrations.json */; };
+			F0A15E202E2D15F800606BCB /* JobUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A15E1F2E2D15F800606BCB /* JobUITests.swift */; };
+			F0A15E222E2D15F800606BCB /* LiveScraperAuditTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A15E212E2D15F800606BCB /* LiveScraperAuditTests.swift */; };
+			F0A15E242E2D15F800606BCB /* ExtractionParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A15E232E2D15F800606BCB /* ExtractionParityTests.swift */; };
 		F291F1212E2D15F800606BCB /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = F291F1202E2D15F800606BCB /* SwiftSoup */; };
 /* End PBXBuildFile section */
 
@@ -28,6 +34,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F0A15E1B2E2D15F800606BCB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = JobUI/Assets.xcassets; sourceTree = "<group>"; };
+		F0A15E1E2E2D15F800606BCB /* studios.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = JobUI/studios.json; sourceTree = "<group>"; };
+		F0A15E252E2D15F800606BCB /* location-rule-migrations.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = JobUI/location-rule-migrations.json; sourceTree = "<group>"; };
+			F0A15E1F2E2D15F800606BCB /* JobUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobUITests/JobUITests.swift; sourceTree = "<group>"; };
+			F0A15E212E2D15F800606BCB /* LiveScraperAuditTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobUITests/LiveScraperAuditTests.swift; sourceTree = "<group>"; };
+			F0A15E232E2D15F800606BCB /* ExtractionParityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobUITests/ExtractionParityTests.swift; sourceTree = "<group>"; };
 		F21ADCF22E297E6E0037F22D /* JobUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JobUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F21ADCF32E297E6E0037F22D /* JobUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JobUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F21ADCF42E297E6E0037F22D /* JobUIUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JobUIUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -144,6 +156,12 @@
 		F284F08C2E21B57D0092F064 = {
 			isa = PBXGroup;
 			children = (
+				F0A15E1B2E2D15F800606BCB /* Assets.xcassets */,
+				F0A15E1E2E2D15F800606BCB /* studios.json */,
+				F0A15E252E2D15F800606BCB /* location-rule-migrations.json */,
+					F0A15E1F2E2D15F800606BCB /* JobUITests.swift */,
+					F0A15E212E2D15F800606BCB /* LiveScraperAuditTests.swift */,
+					F0A15E232E2D15F800606BCB /* ExtractionParityTests.swift */,
 				F284F0F42E21B8180092F064 /* Data */,
 				F284F0F92E21B8180092F064 /* JobUI */,
 				F284F0FC2E21B8180092F064 /* JobUITests */,
@@ -272,6 +290,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F0A15E1A2E2D15F800606BCB /* Assets.xcassets in Resources */,
+				F0A15E1D2E2D15F800606BCB /* studios.json in Resources */,
+				F0A15E262E2D15F800606BCB /* location-rule-migrations.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -303,6 +324,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+					F0A15E202E2D15F800606BCB /* JobUITests.swift in Sources */,
+					F0A15E222E2D15F800606BCB /* LiveScraperAuditTests.swift in Sources */,
+					F0A15E242E2D15F800606BCB /* ExtractionParityTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

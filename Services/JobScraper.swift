@@ -5,92 +5,111 @@ import SwiftSoup
 public class JobScraper {
     public static let shared = JobScraper()
 
+    private struct HTTPStatusError: LocalizedError {
+        let status: Int
+        let host: String
+        var errorDescription: String? { "\(host) returned HTTP \(status)" }
+    }
+
     public func fetchJobs(for studio: Studio, startingAt: Int = 1) async throws -> (jobs: [Job], total: Int) {
         guard let scraping = studio.scraping else {
             throw URLError(.unsupportedURL)
         }
         
-        let jobsList = try await withThrowingTaskGroup(of: [Job].self) { group in
-            for url in studio.careersUrl {
+        let (jobsList, failure) = await withTaskGroup(of: (Int, Result<[Job], Error>).self) { group -> ([Job], Error?) in
+            for (index, url) in studio.careersUrl.enumerated() {
                 group.addTask {
-                    switch scraping.strategy {
-                    case "json":
-                        return try await self.fetchJSON(for: studio, from: url)
-                    case "html":
-                        return try await self.fetchHTML(for: studio, from: url)
-                    case "json_text":
-                        return try await self.fetchJSONText(for: studio, from: url)
-                    case "rss":
-                        return try await self.fetchRSS(for: studio, from: url)
-                    default:
-                        throw URLError(.unsupportedURL)
+                    do {
+                        let jobs: [Job]
+                        switch scraping.strategy {
+                        case "json":
+                            jobs = try await self.fetchJSON(for: studio, from: url)
+                        case "html":
+                            jobs = try await self.fetchHTML(for: studio, from: url)
+                        case "json_text":
+                            jobs = try await self.fetchJSONText(for: studio, from: url)
+                        case "remix":
+                            jobs = try await self.fetchRemix(for: studio, from: url)
+                        case "rss":
+                            jobs = try await self.fetchRSS(for: studio, from: url)
+                        case "static":
+                            jobs = []
+                        default:
+                            throw URLError(.unsupportedURL)
+                        }
+                        return (index, .success(jobs))
+                    } catch {
+                        return (index, .failure(error))
                     }
                 }
             }
             
             var collected: [Job] = []
             var seenLinks = Set<String>()
-            
-            while let jobs = try await group.next() {
-                for job in jobs {
-                    let linkString = job.link.absoluteString.lowercased()
-                    if !seenLinks.contains(linkString) {
-                        collected.append(job)
-                        seenLinks.insert(linkString)
+            var firstFailure: Error?
+            var succeeded = false
+            var results: [Int: Result<[Job], Error>] = [:]
+            for await (index, result) in group { results[index] = result }
+            // Preserve Python's configured URL priority even when responses
+            // complete out of order, including which duplicate wins.
+            for index in studio.careersUrl.indices {
+                guard let result = results[index] else { continue }
+                switch result {
+                case .success(let jobs):
+                    succeeded = true
+                    for job in jobs {
+                        // Match Python's title+URL identity, ignoring common tracking parameters.
+                        var components = URLComponents(url: job.link, resolvingAgainstBaseURL: false)
+                        let items = components?.queryItems
+                        components?.queryItems = items?.filter {
+                            let name = $0.name.lowercased()
+                            return !name.hasPrefix("utm_") && !["portal", "ref", "source", "jobid"].contains(name)
+                        }
+                        let key = job.title.lowercased() + "|" + (components?.url ?? job.link).absoluteString.lowercased()
+                        if seenLinks.insert(key).inserted {
+                            collected.append(job)
+                        }
                     }
+                case .failure(let error):
+                    if firstFailure == nil { firstFailure = error }
                 }
             }
-            return collected
+            // A broken endpoint does not discard results from other careers URLs.
+            return (collected, succeeded ? nil : firstFailure)
         }
+        if let failure { throw failure }
         
-        return (jobsList.sorted(by: { $0.title < $1.title }), jobsList.count)
+        let enriched = try await enrichFromDetailPages(jobsList, config: scraping.detailPage)
+        return (enriched, enriched.count)
     }
 
     // MARK: - Generic Scrapers
     
     private func fetchJSON(for studio: Studio, from url: URL) async throws -> [Job] {
         guard let scraping = studio.scraping else { return [] }
-        
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-        if let params = scraping.params {
-            components.queryItems = params.flatMap { (key, value) -> [URLQueryItem] in
-                if case .array(let items) = value {
-                    return items.map { URLQueryItem(name: key, value: $0.stringValue) }
-                }
-                return [URLQueryItem(name: key, value: value.stringValue)]
-            }
-        }
-        
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = scraping.method ?? "GET"
-        
-        if let headers = scraping.headers {
-            for (key, value) in headers {
+        var request = try makeRequest(url: url, scraping: scraping)
+        if let preVisit = scraping.preVisit {
+            for (key, value) in try await headersFromPreVisit(preVisit) {
                 request.setValue(value, forHTTPHeaderField: key)
             }
         }
         
-        if let payload = scraping.payload {
-            let encoder = JSONEncoder()
-            request.httpBody = try encoder.encode(payload)
-            if request.value(forHTTPHeaderField: "Content-Type") == nil {
-                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            }
-        } else if let formData = scraping.formData {
-            let bodyString = formData.map { "\($0.key)=\($0.value.stringValue.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")" }.joined(separator: "&")
-            request.httpBody = bodyString.data(using: .utf8)
-            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        }
-        
-        request.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
-        
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let data = try await responseData(for: request)
         let json = try JSONSerialization.jsonObject(with: data)
         
         return try await parseJSONItems(json, for: studio, from: url)
     }
+
+    private func fetchRemix(for studio: Studio, from url: URL) async throws -> [Job] {
+        guard let scraping = studio.scraping else { return [] }
+        let request = try makeRequest(url: url, scraping: scraping)
+        let data = try await responseData(for: request)
+        let raw = try JSONSerialization.jsonObject(with: data)
+        let decoded = decodeDevalue(raw)
+        return try await parseJSONItems(decoded, for: studio, from: url)
+    }
     
-    private func parseJSONItems(_ json: Any, for studio: Studio, from url: URL) async throws -> [Job] {
+    func parseJSONItems(_ json: Any, for studio: Studio, from url: URL) async throws -> [Job] {
         guard let scraping = studio.scraping else { return [] }
         let mapping = scraping.map ?? [:]
         
@@ -115,8 +134,8 @@ public class JobScraper {
         // Filter
         if let filter = scraping.filter {
             itemArray = itemArray.filter { item in
-                let val = String(describing: extractJSON(item, path: filter.key) ?? "")
-                return val.lowercased().hasPrefix(filter.startswith.lowercased())
+                let val = stringify(extractJSON(item, path: filter.key))
+                return val.hasPrefix(filter.startswith)
             }
         }
         
@@ -137,16 +156,17 @@ public class JobScraper {
     
     private func fetchJSONText(for studio: Studio, from url: URL) async throws -> [Job] {
         guard let scraping = studio.scraping else { return [] }
-        let htmlResponse = try await fetchHTMLContent(from: url, method: scraping.method ?? "GET", payload: scraping.payload, headers: scraping.headers)
+        let htmlResponse = try await fetchHTMLContent(from: url, scraping: scraping)
         let doc = try SwiftSoup.parse(htmlResponse)
         
         let regex: String
         if let customRegex = scraping.jsonText?.regex {
             regex = customRegex
         } else if let varName = scraping.jsonText?.variable {
-            regex = "(?:const|var|let)\\s+\(varName)\\s*=\\s*(\\[.*\\])\\s*;?"
+            let escapedName = NSRegularExpression.escapedPattern(for: varName)
+            regex = "(?:const|var|let|window\\.)\\s*\(escapedName)\\s*=\\s*(\\[.*?\\])\\s*(?:;|\\n|</script>)"
         } else {
-            regex = "const jobsData\\s*=\\s*(\\[.*\\])\\s*;?"
+            regex = "(?:const|var|let|window\\.)\\s*jobsData\\s*=\\s*(\\[.*?\\])\\s*(?:;|\\n|</script>)"
         }
         
         var text = ""
@@ -181,7 +201,10 @@ public class JobScraper {
                    firstMatch.numberOfRanges > 1 {
                     let groupRange = firstMatch.range(at: 1)
                     if let r = Range(groupRange, in: text) {
-                        let jsonStr = String(text[r])
+                        var jsonStr = String(text[r])
+                        if scraping.jsonText?.unescape == true {
+                            jsonStr = (try? SwiftSoup.parse(jsonStr).text()) ?? jsonStr
+                        }
                         if let jsonData = jsonStr.data(using: .utf8),
                            let json = try? JSONSerialization.jsonObject(with: jsonData) {
                             return try await parseJSONItems(json, for: studio, from: url)
@@ -197,7 +220,13 @@ public class JobScraper {
         guard let scraping = studio.scraping else { return [] }
         let mapping = scraping.map ?? [:]
         
-        let htmlResponse = try await fetchHTMLContent(from: url, method: scraping.method ?? "GET", payload: scraping.payload, headers: scraping.headers)
+        let responseData = try await responseData(for: makeRequest(url: url, scraping: scraping))
+        var htmlResponse = decodeText(responseData, encoding: scraping.encoding)
+        if let jsonHTMLField = scraping.jsonHTMLField,
+           let json = try? JSONSerialization.jsonObject(with: responseData),
+           let extracted = extractJSON(json, path: jsonHTMLField) {
+            htmlResponse = stringify(extracted)
+        }
         let doc = try SwiftSoup.parse(htmlResponse)
         
         guard let containerSelector = scraping.container else { return [] }
@@ -222,7 +251,7 @@ public class JobScraper {
         guard let scraping = studio.scraping else { return [] }
         let mapping = scraping.map ?? [:]
         
-        let xmlResponse = try await fetchHTMLContent(from: url)
+        let xmlResponse = try await fetchHTMLContent(from: url, scraping: scraping)
         let doc = try SwiftSoup.parse(xmlResponse, "", Parser.xmlParser())
         
         let containerSelector = scraping.container ?? "item"
@@ -261,7 +290,7 @@ public class JobScraper {
         
         let link: URL
         if linkStr.isEmpty {
-            link = (studio.website ?? url).absoluteURL
+            link = url.absoluteURL
         } else if let l = URL(string: linkStr, relativeTo: studio.website ?? url) {
             link = l.absoluteURL
         } else {
@@ -290,79 +319,119 @@ public class JobScraper {
 
     // MARK: - Utilities
     
-    private func extractJSON(_ data: Any, path: String) -> Any? {
+    func extractJSON(_ data: Any, path: String) -> Any? {
         if path.isEmpty { return data }
-        
-        // Support fallback paths
+
+        // Like the Python extractor, alternatives have precedence over concatenation.
         if path.contains(",") {
-            let paths = path.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-            for p in paths {
-                if let val = extractJSON(data, path: p), !(val is NSNull) {
-                    if let s = val as? String, s.isEmpty { continue }
-                    return val
+            let paths = splitPath(path, separator: ",")
+            if paths.count > 1 {
+                for candidate in paths {
+                    if let val = extractJSON(data, path: candidate), !(val is NSNull) {
+                        if let text = val as? String, text.isEmpty { continue }
+                        if let values = val as? [Any], values.isEmpty { continue }
+                        return val
+                    }
                 }
+                return nil
             }
-            return nil
+        }
+        if path.contains("+") {
+            let parts = splitPath(path, separator: "+")
+            if parts.count > 1 {
+                var result = ""
+                for part in parts {
+                    let value: String
+                    if (part.hasPrefix("'") && part.hasSuffix("'")) ||
+                        (part.hasPrefix("\"") && part.hasSuffix("\"")) {
+                        value = String(part.dropFirst().dropLast())
+                    } else if let extracted = extractJSON(data, path: part) {
+                        value = stringify(extracted)
+                    } else {
+                        return nil
+                    }
+                    result += value
+                }
+                return result
+            }
         }
         
-        let parts = path.components(separatedBy: ".")
-        var current: Any? = data
         
+        let parts = path.components(separatedBy: ".")
+        var current: [Any] = [data]
+        var usedWildcard = false
+
         for part in parts {
             var key = part
             var index: Int? = nil
+            var wildcard = false
             
             if part.contains("[") && part.contains("]") {
                 let bits = part.components(separatedBy: "[")
                 key = bits[0]
                 let indexBit = bits[1].replacingOccurrences(of: "]", with: "")
                 if indexBit == "*" {
-                    // Wildcard handle
-                    if let dict = current as? [String: Any], let next = dict[key] as? [Any] {
-                        return next // Return the whole array
-                    } else if let array = current as? [Any] {
-                        return array
-                    }
+                    wildcard = true
+                    usedWildcard = true
                 } else {
                     index = Int(indexBit)
                 }
             }
-            
-            if !key.isEmpty {
-                if let dict = current as? [String: Any] {
-                    current = dict[key]
+
+            var next: [Any] = []
+            for node in current {
+                var value: Any? = node
+                if !key.isEmpty {
+                    value = (node as? [String: Any])?[key]
+                }
+                guard let unwrapped = value else { continue }
+                if wildcard, let array = unwrapped as? [Any] {
+                    next.append(contentsOf: array)
+                } else if let idx = index, let array = unwrapped as? [Any] {
+                    let resolved = idx >= 0 ? idx : array.count + idx
+                    if array.indices.contains(resolved) { next.append(array[resolved]) }
                 } else {
-                    return nil
+                    next.append(unwrapped)
                 }
             }
-            
-            if let idx = index, let array = current as? [Any] {
-                if idx >= 0 && idx < array.count {
-                    current = array[idx]
-                } else {
-                    return nil
-                }
-            }
+            current = next
         }
-        
-        return current
+
+        if usedWildcard { return current }
+        return current.count == 1 ? current[0] : (current.isEmpty ? nil : current)
     }
 
     private func applyMapping(to field: String, item: [String: Any], mapping: [String: ScrapingMapValue], rootURL: URL) -> String {
         guard let mapValue = mapping[field] else { return "" }
         
-        var val: String = ""
+        var rawValue: Any?
         if mapValue.source == "url" {
-            val = rootURL.absoluteString
+            rawValue = rootURL.absoluteString
         } else if let path = mapValue.path {
-            val = String(describing: extractJSON(item, path: path) ?? "")
+            rawValue = extractJSON(item, path: path)
         }
-        
-        return finalizeValue(val, config: mapValue)
+
+        let value: String
+        if let array = rawValue as? [Any] {
+            value = array.map(stringify).filter { !$0.isEmpty }.joined(separator: mapValue.join ?? ", ")
+        } else {
+            value = stringify(rawValue)
+        }
+        return finalizeValue(value, config: mapValue)
     }
     
-    private func applyMappingHTML(to field: String, element: Element, mapping: [String: ScrapingMapValue], rootURL: URL, defaultAttr: String = "text") -> String {
+    func applyMappingHTML(to field: String, element: Element, mapping: [String: ScrapingMapValue], rootURL: URL, defaultAttr: String = "text") -> String {
         guard let mapValue = mapping[field] else { return "" }
+
+        // A default-only HTML rule is a constant, matching Python's mapper.
+        // Reading the whole container here accidentally displayed the job description
+        // as the location for Pixel Zoo, Techland, Little Zoo and others.
+        if let fallback = mapValue.defaultValue,
+           mapValue.selector == nil, mapValue.path == nil,
+           mapValue.source == nil, mapValue.findPrevious == nil,
+           mapValue.findNextSibling == nil {
+            return fallback
+        }
         
         var result = ""
         
@@ -393,20 +462,57 @@ public class JobScraper {
                 if found { break }
                 current = currentElement.parent()
             }
+        } else if let siblingSelector = mapValue.findNextSibling {
+            var sibling = try? element.nextElementSibling()
+            while let candidate = sibling {
+                let classMatch = (try? candidate.classNames().contains(siblingSelector)) ?? false
+                if candidate.tagName() == siblingSelector || classMatch {
+                    let nested = mapValue.selector.flatMap { try? candidate.select(normalizeSelector($0)).first() }
+                    result = extractHTMLValue(from: nested ?? candidate, attr: mapValue.attr ?? defaultAttr)
+                    break
+                }
+                sibling = try? candidate.nextElementSibling()
+            }
         } else {
             let selector = mapValue.selector ?? ""
             let attr = mapValue.attr ?? defaultAttr
             
             do {
-                let target: Element? = selector.isEmpty ? element : try element.select(normalizeSelector(selector)).first()
-                if let target = target {
-                    if attr == "text" {
-                        result = try target.text()
-                    } else if attr == "html" {
-                        result = try target.outerHtml()
-                    } else {
-                        result = try target.attr(attr)
+                let targets = selector.isEmpty ? nil : try element.select(normalizeSelector(selector))
+                if let targets,
+                   case .string(let slice)? = mapValue.index,
+                   slice.contains(":") {
+                    let parts = slice.split(separator: ":", omittingEmptySubsequences: false)
+                    if parts.count == 2 {
+                        let count = targets.size()
+                        func boundary(_ part: Substring, fallback: Int) -> Int {
+                            guard let raw = Int(part) else { return fallback }
+                            return max(0, min(count, raw < 0 ? count + raw : raw))
+                        }
+                        let lower = boundary(parts[0], fallback: 0)
+                        let upper = boundary(parts[1], fallback: count)
+                        if lower < upper {
+                            result = (lower..<upper).compactMap { targets.get($0) }
+                                .map { target -> String in
+                                    self.extractHTMLValue(from: target, attr: attr, exclude: mapValue.exclude)
+                                }
+                                .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                                .joined(separator: " ")
+                        }
+                        return finalizeValue(result, config: mapValue)
                     }
+                }
+                let target: Element?
+                if selector.isEmpty {
+                    target = element
+                } else if let targets, let index = integerIndex(mapValue.index), !targets.isEmpty() {
+                    let resolved = index >= 0 ? index : targets.size() + index
+                    target = resolved >= 0 && resolved < targets.size() ? targets.get(resolved) : nil
+                } else {
+                    target = targets?.first()
+                }
+                if let target = target {
+                    result = extractHTMLValue(from: target, attr: attr, exclude: mapValue.exclude)
                 }
             } catch {
                 print("HTML extraction error for \(field): \(error)")
@@ -442,8 +548,10 @@ public class JobScraper {
         return finalizeValue(result, config: mapValue)
     }
     
-    private func finalizeValue(_ input: String, config: ScrapingMapValue) -> String {
+    func finalizeValue(_ input: String, config: ScrapingMapValue) -> String {
         var val = input
+
+        if val.isEmpty { return config.defaultValue ?? "" }
         
         if let split = config.split {
             let parts = val.components(separatedBy: split.sep)
@@ -452,50 +560,235 @@ public class JobScraper {
             }
         }
         
-        if let regex = config.regex {
-            if let range = val.range(of: regex, options: .regularExpression) {
-                val = String(val[range])
-                // Attempt to get first group if any
-                if let nsRegex = try? NSRegularExpression(pattern: regex) {
-                    let nsRange = NSRange(val.startIndex..., in: val)
-                    if let firstMatch = nsRegex.firstMatch(in: val, range: nsRange), firstMatch.numberOfRanges > 1 {
-                        let groupRange = firstMatch.range(at: 1)
-                        if let r = Range(groupRange, in: val) {
-                            val = String(val[r])
-                        }
-                    }
-                }
-            } else {
-                val = ""
-            }
+        if let regex = config.regex, !val.isEmpty {
+            if let expression = try? NSRegularExpression(pattern: regex),
+               let match = expression.firstMatch(in: val, range: NSRange(val.startIndex..., in: val)),
+               let captured = Range(match.range(at: match.numberOfRanges > 1 ? 1 : 0), in: val) {
+                val = String(val[captured])
+            } else { val = "" }
         }
+
+        for replacement in config.replace ?? [] {
+            val = val.replacingOccurrences(of: replacement.old, with: replacement.new)
+        }
+        if config.titleCase == true { val = val.capitalized }
         
         if !val.isEmpty {
             if let prefix = config.prefix { val = prefix + val }
             if let suffix = config.suffix { val = val + suffix }
         }
         
-        return val
+        return val.isEmpty ? (config.defaultValue ?? "") : val
     }
 
-    private func fetchHTMLContent(from url: URL, method: String = "GET", payload: [String: JSONValue]? = nil, headers: [String: String]? = nil) async throws -> String {
-        var request = URLRequest(url: url)
-        request.httpMethod = method
+    private func makeRequest(url: URL, scraping: ScrapingConfig) throws -> URLRequest {
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        if let params = scraping.params {
+            var items = components?.queryItems ?? []
+            for (key, value) in params {
+                if case .array(let values) = value {
+                    items.append(contentsOf: values.map { URLQueryItem(name: key, value: $0.stringValue) })
+                } else {
+                    items.append(URLQueryItem(name: key, value: value.stringValue))
+                }
+            }
+            components?.queryItems = items
+        }
+        guard let requestURL = components?.url else { throw URLError(.badURL) }
+        var request = URLRequest(url: requestURL)
+        request.httpMethod = scraping.method ?? "GET"
         request.addValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36", forHTTPHeaderField: "User-Agent")
-        
-        if let headers = headers {
+        if let headers = scraping.headers {
             for (key, value) in headers {
                 request.setValue(value, forHTTPHeaderField: key)
             }
         }
-        
-        if let payload = payload {
-            let encoder = JSONEncoder()
-            request.httpBody = try encoder.encode(payload)
+        if let formData = scraping.formData {
+            let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
+            request.httpBody = formData.map { key, value in
+                let encodedKey = key.addingPercentEncoding(withAllowedCharacters: allowed) ?? ""
+                let encoded = value.stringValue.addingPercentEncoding(withAllowedCharacters: allowed) ?? ""
+                return "\(encodedKey)=\(encoded)"
+            }.joined(separator: "&").data(using: .utf8)
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        } else if let payload = scraping.payload {
+            request.httpBody = try JSONEncoder().encode(payload)
+            if request.value(forHTTPHeaderField: "Content-Type") == nil {
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            }
         }
-        
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return String(data: data, encoding: .utf8) ?? ""
+        return request
+    }
+
+    private func responseData(for request: URLRequest) async throws -> Data {
+        for attempt in 0..<3 {
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+                if (200...299).contains(http.statusCode) { return data }
+                if request.httpMethod?.uppercased() == "GET", attempt < 2,
+                   (http.statusCode == 429 || (500...599).contains(http.statusCode)) {
+                    let retrySeconds = http.value(forHTTPHeaderField: "Retry-After").flatMap(Double.init)
+                    try await Task.sleep(for: .seconds(min(retrySeconds ?? Double(attempt + 1), 5)))
+                    continue
+                }
+                throw HTTPStatusError(status: http.statusCode, host: request.url?.host ?? "Server")
+            } catch {
+                let code = (error as NSError).code
+                if request.httpMethod?.uppercased() == "GET", attempt < 2,
+                   (error as NSError).domain == NSURLErrorDomain,
+                   [-1001, -1003, -1004, -1005, -1009].contains(code) {
+                    try await Task.sleep(for: .milliseconds(350 * (attempt + 1)))
+                    continue
+                }
+                throw error
+            }
+        }
+        throw URLError(.cannotLoadFromNetwork)
+    }
+
+    private func fetchHTMLContent(from url: URL, scraping: ScrapingConfig) async throws -> String {
+        let data = try await responseData(for: makeRequest(url: url, scraping: scraping))
+        return decodeText(data, encoding: scraping.encoding)
+    }
+
+    private func decodeText(_ data: Data, encoding: String?) -> String {
+        let selected: String.Encoding
+        switch encoding?.lowercased() {
+        case "iso-8859-1", "latin-1", "latin1": selected = .isoLatin1
+        case "windows-1252", "cp1252": selected = .windowsCP1252
+        case "ascii", "us-ascii": selected = .ascii
+        default: selected = .utf8
+        }
+        return String(data: data, encoding: selected)
+            ?? String(data: data, encoding: .utf8)
+            ?? String(decoding: data, as: UTF8.self)
+    }
+
+    private func headersFromPreVisit(_ config: ScrapingConfig.PreVisitConfig) async throws -> [String: String] {
+        guard let url = config.url else { return [:] }
+        var request = URLRequest(url: url)
+        request.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36", forHTTPHeaderField: "User-Agent")
+        _ = try await responseData(for: request)
+        guard let csrf = config.csrf,
+              let cookieName = csrf.cookie,
+              let headerName = csrf.header,
+              let cookie = HTTPCookieStorage.shared.cookies(for: url)?.first(where: { $0.name == cookieName })
+        else { return [:] }
+        var value = cookie.value
+        if csrf.unescape == true { value = value.removingPercentEncoding ?? value }
+        if let separator = csrf.split { value = value.components(separatedBy: separator).first ?? value }
+        return [headerName: value]
+    }
+
+    private func enrichFromDetailPages(_ jobs: [Job], config: ScrapingConfig.DetailPageConfig?) async throws -> [Job] {
+        guard let config, !config.map.isEmpty else { return jobs }
+        let batchSize = max(1, min(config.maxWorkers ?? 6, 16))
+        var output = jobs
+        for start in stride(from: 0, to: jobs.count, by: batchSize) {
+            await withTaskGroup(of: (Int, Job).self) { group in
+                for index in start..<min(start + batchSize, jobs.count) {
+                    let job = jobs[index]
+                    group.addTask {
+                        do {
+                            var request = URLRequest(url: job.link, timeoutInterval: config.timeout ?? 10)
+                            request.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36", forHTTPHeaderField: "User-Agent")
+                            config.headers?.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
+                            let data = try await self.responseData(for: request)
+                            let document = try SwiftSoup.parse(String(data: data, encoding: .utf8) ?? "")
+                            var title = job.title
+                            var location = job.location
+                            for (field, rule) in config.map {
+                                let value = self.applyMappingHTML(to: field, element: document, mapping: [field: rule], rootURL: job.link)
+                                guard !value.isEmpty else { continue }
+                                if field == "title" { title = self.cleanText(value) }
+                                if field == "location" { location = self.cleanText(value) }
+                            }
+                            return (index, Job(title: title, link: job.link, location: location, extraLink: job.extraLink))
+                        } catch {
+                            return (index, job)
+                        }
+                    }
+                }
+                for await (index, job) in group { output[index] = job }
+            }
+        }
+        return output
+    }
+
+    private func decodeDevalue(_ root: Any) -> Any {
+        guard let values = root as? [Any] else { return root }
+        var visiting = Set<Int>()
+        func decode(_ reference: Any) -> Any {
+            guard let number = reference as? NSNumber,
+                  CFGetTypeID(number) != CFBooleanGetTypeID() else { return reference }
+            let index = number.intValue
+            if index < 0 { return NSNull() }
+            guard values.indices.contains(index), !visiting.contains(index) else { return NSNull() }
+            visiting.insert(index)
+            defer { visiting.remove(index) }
+            let value = values[index]
+            if let dictionary = value as? [String: Any] {
+                var decoded: [String: Any] = [:]
+                for (keyReference, child) in dictionary {
+                    let rawKey = keyReference.hasPrefix("_") ? String(keyReference.dropFirst()) : keyReference
+                    let key = Int(rawKey).map { stringify(decode($0)) } ?? rawKey
+                    decoded[key] = decode(child)
+                }
+                return decoded
+            }
+            if let array = value as? [Any] { return array.map(decode) }
+            return value
+        }
+        return decode(0)
+    }
+
+    private func stringify(_ value: Any?) -> String {
+        guard let value, !(value is NSNull) else { return "" }
+        if let string = value as? String { return string }
+        if let number = value as? NSNumber { return number.stringValue }
+        return String(describing: value)
+    }
+
+    private func integerIndex(_ value: JSONValue?) -> Int? {
+        guard let value else { return nil }
+        switch value {
+        case .number(let number): return Int(number)
+        case .string(let string): return Int(string)
+        default: return nil
+        }
+    }
+
+    private func extractHTMLValue(from element: Element, attr: String, exclude: String? = nil) -> String {
+        if attr == "text" {
+            if let exclude {
+                let clone = element.copy() as! Element
+                _ = try? clone.select(normalizeSelector(exclude)).remove()
+                return (try? clone.text()) ?? ""
+            }
+            return (try? element.text()) ?? ""
+        }
+        if attr == "html" { return (try? element.outerHtml()) ?? "" }
+        return (try? element.attr(attr)) ?? ""
+    }
+
+    private func splitPath(_ value: String, separator: Character) -> [String] {
+        var quote: Character?
+        var current = ""
+        var output: [String] = []
+        for character in value {
+            if character == "'" || character == "\"" {
+                quote = quote == character ? nil : (quote == nil ? character : quote)
+            }
+            if character == separator && quote == nil {
+                output.append(current.trimmingCharacters(in: .whitespaces))
+                current = ""
+            } else {
+                current.append(character)
+            }
+        }
+        if !current.isEmpty { output.append(current.trimmingCharacters(in: .whitespaces)) }
+        return output
     }
 
     private func normalizeSelector(_ selector: String) -> String {

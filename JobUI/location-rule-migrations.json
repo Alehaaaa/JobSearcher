@@ -1,0 +1,46 @@
+[
+  {
+    "id": "airshipinteractive",
+    "old": {"selector": "div.mt-1.text-md span", "index": -1},
+    "new": {"selector": "div.mt-4 span.inline-flex"}
+  },
+  {
+    "id": "hampa",
+    "old": {"selector": "span.text-base span", "index": "2"},
+    "new": {"selector": "div.mt-4 span.inline-flex"}
+  },
+  {
+    "id": "digitaldomain",
+    "old": {"selector": "title", "split": {"sep": ":", "index": 1}},
+    "new": {"selector": "title", "split": {"sep": ":", "index": 1}, "replace": [
+      {"old": "VC", "new": "Vancouver, Canada"},
+      {"old": "PL", "new": "Playa Vista, United States"},
+      {"old": "MR", "new": "Montreal, Canada"}
+    ]}
+  },
+  {
+    "id": "ubisoft",
+    "old": "city",
+    "new": {"path": "city + ', ' + countryCode", "replace": [
+      {"old": ", bg", "new": ", Bulgaria"},
+      {"old": ", br", "new": ", Brazil"},
+      {"old": ", ca", "new": ", Canada"},
+      {"old": ", cn", "new": ", China"},
+      {"old": ", de", "new": ", Germany"},
+      {"old": ", es", "new": ", Spain"},
+      {"old": ", fr", "new": ", France"},
+      {"old": ", gb", "new": ", United Kingdom"},
+      {"old": ", in", "new": ", India"},
+      {"old": ", ro", "new": ", Romania"},
+      {"old": ", se", "new": ", Sweden"},
+      {"old": ", sg", "new": ", Singapore"},
+      {"old": ", ua", "new": ", Ukraine"},
+      {"old": ", vn", "new": ", Vietnam"}
+    ]}
+  },
+  {
+    "id": "pixelzoo",
+    "old": {"default": "Brisbane, Australia"},
+    "new": {"default": "North Lakes, Brisbane, Australia"}
+  }
+]
