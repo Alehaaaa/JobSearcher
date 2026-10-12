@@ -1,7 +1,15 @@
+import concurrent.futures
 import os
-import urllib.request
 import ssl
+import threading
+import urllib.request
+
 from .logger import logger
+
+try:
+    import certifi
+except ImportError:
+    certifi = None
 
 try:
     from PySide2 import QtCore, QtGui, QtSvg
@@ -11,35 +19,51 @@ except ImportError:
 
 class LogoWorker(QtCore.QThread):
     logo_downloaded = QtCore.Signal(str)  # studio_id
-    finished = QtCore.Signal()
+
+    MAX_DOWNLOAD_BYTES = 20 * 1024 * 1024
+    MAX_IMAGE_DIMENSION = 1024
+
+    @staticmethod
+    def _create_ssl_context():
+        """Use a reliable CA bundle in embedded Python runtimes such as Maya."""
+        if certifi is not None:
+            return ssl.create_default_context(cafile=certifi.where())
+        return ssl.create_default_context()
 
     def __init__(self, studios, logos_dir, parent=None):
         super(LogoWorker, self).__init__(parent)
-        self.studios = studios
-        self.logos_dir = logos_dir
-        self._is_running = True
+        self._studios = list(studios)
+        self._logos_dir = logos_dir
+        self._stop_event = threading.Event()
 
-    def render_svg(self, data):
+    def _render_svg(self, data):
         """Renders SVG data (bytes) to a QImage."""
         renderer = QtSvg.QSvgRenderer(data)
         if not renderer.isValid():
             return QtGui.QImage()
 
-        # Render to a QImage
         size = renderer.defaultSize()
         if size.isEmpty():
-            size = QtCore.QSize(200, 200)  # Fallback
+            size = QtCore.QSize(200, 200)
+        size.scale(
+            self.MAX_IMAGE_DIMENSION,
+            self.MAX_IMAGE_DIMENSION,
+            QtCore.Qt.KeepAspectRatio,
+        )
 
         image = QtGui.QImage(size, QtGui.QImage.Format_ARGB32)
-        image.fill(0)  # Transparent background
+        image.fill(QtCore.Qt.transparent)
 
         painter = QtGui.QPainter(image)
-        renderer.render(painter)
-        painter.end()
+        try:
+            renderer.render(painter)
+        finally:
+            painter.end()
 
         return image
 
-    def process_logo(self, studio, ctx):
+    def _process_logo(self, studio, ssl_context):
+        """Download and atomically cache one logo; return its studio id on success."""
         logo_url = studio.get("logo_url")
         studio_id = studio.get("id")
 
@@ -47,10 +71,9 @@ class LogoWorker(QtCore.QThread):
             return
 
         filename = f"{studio_id}.png"
-        filepath = os.path.join(self.logos_dir, filename)
+        filepath = os.path.join(self._logos_dir, filename)
 
         try:
-            # Download data
             req = urllib.request.Request(
                 logo_url,
                 headers={
@@ -60,91 +83,107 @@ class LogoWorker(QtCore.QThread):
                     "Referer": "https://www.google.com/",
                 },
             )
-            with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
-                data = response.read()
+            with urllib.request.urlopen(req, context=ssl_context, timeout=10) as response:
+                content_type = response.headers.get_content_type()
+                data = response.read(self.MAX_DOWNLOAD_BYTES + 1)
 
-            if not self._is_running:
+            if len(data) > self.MAX_DOWNLOAD_BYTES:
+                raise ValueError("logo exceeds 20 MB download limit")
+
+            if self._stop_event.is_set():
                 return
 
-            # Process Image
-            if logo_url.lower().endswith(".svg"):
-                img = self.render_svg(data)
+            is_svg = content_type == "image/svg+xml" or data.lstrip().startswith((b"<svg", b"<?xml"))
+            if is_svg:
+                img = self._render_svg(data)
             else:
                 img = QtGui.QImage.fromData(data)
 
-            if img.isNull() or not self._is_running:
+            if img.isNull() or self._stop_event.is_set():
                 return
 
-            # 1. Make White (preserve alpha)
-            image = img.convertToFormat(QtGui.QImage.Format_ARGB32)
-            for y in range(image.height()):
-                for x in range(image.width()):
-                    pixel = image.pixelColor(x, y)
-                    if pixel.alpha() > 0:
-                        pixel.setRed(255)
-                        pixel.setGreen(255)
-                        pixel.setBlue(255)
-                        image.setPixelColor(x, y, pixel)
-
-            # 2. Trim Padding
-            if not self._is_running:
-                return
-            image = self.trim_image(image)
-
-            # Save
-            if self._is_running:
-                image.save(filepath, "PNG")
-                self.logo_downloaded.emit(studio_id)
-
-        except Exception as e:
-            if self._is_running:
-                logger.error(f"Failed to process logo for {studio_id}: {e}")
-
-    def run(self):
-        import concurrent.futures
-
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-
-        max_workers = min(len(self.studios), 10)
-        if max_workers < 1:
-            max_workers = 1
-
-        executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
-        future_to_studio = {executor.submit(self.process_logo, s, ctx): s for s in self.studios}
-        pending = set(future_to_studio.keys())
-
-        while pending and self._is_running:
-            try:
-                done, _ = concurrent.futures.wait(
-                    pending, timeout=0.2, return_when=concurrent.futures.FIRST_COMPLETED
+            # Bound CPU and memory use before processing unusually large source images.
+            if max(img.width(), img.height()) > self.MAX_IMAGE_DIMENSION:
+                img = img.scaled(
+                    self.MAX_IMAGE_DIMENSION,
+                    self.MAX_IMAGE_DIMENSION,
+                    QtCore.Qt.KeepAspectRatio,
+                    QtCore.Qt.SmoothTransformation,
                 )
 
-                for future in done:
-                    pending.remove(future)
+            image = img.convertToFormat(QtGui.QImage.Format_ARGB32)
+            if self._stop_event.is_set():
+                return
+            image = self._prepare_image(image)
+
+            # Save to a unique temporary file and atomically publish it so the UI
+            # can never read a partially-written PNG.
+            temp_path = "{}.{}.tmp".format(filepath, threading.get_ident())
+            try:
+                if not image.save(temp_path, "PNG"):
+                    raise ValueError("Qt could not encode logo as PNG")
+                if self._stop_event.is_set():
+                    return
+                os.replace(temp_path, filepath)
+                return studio_id
+            finally:
+                if os.path.exists(temp_path):
                     try:
-                        future.result()
-                    except Exception as e:
-                        if self._is_running:
-                            s = future_to_studio[future]
-                            logger.error(f"Error processing logo for {s.get('id', 'Unknown')}: {e}")
-            except Exception:
-                pass
+                        os.remove(temp_path)
+                    except OSError:
+                        pass
 
-        if not self._is_running:
-            for f in pending:
-                f.cancel()
+        except Exception as exc:
+            if not self._stop_event.is_set():
+                logger.error("Failed to process logo for %s: %s", studio_id, exc)
+        return None
 
-        executor.shutdown(wait=False)
+    def run(self):
+        if not self._studios:
+            return
 
-        if self._is_running:
-            self.finished.emit()
+        ssl_context = self._create_ssl_context()
+        max_workers = min(len(self._studios), 10)
+        executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=max_workers,
+            thread_name_prefix="JobUI-logo",
+        )
+        future_to_studio = {
+            executor.submit(self._process_logo, studio, ssl_context): studio
+            for studio in self._studios
+        }
+        pending = set(future_to_studio)
 
-    def trim_image(self, image):
-        """
-        Trims transparent padding from the image.
-        """
+        try:
+            while pending and not self._stop_event.is_set():
+                done, pending = concurrent.futures.wait(
+                    pending,
+                    timeout=0.2,
+                    return_when=concurrent.futures.FIRST_COMPLETED,
+                )
+                for future in done:
+                    studio = future_to_studio[future]
+                    try:
+                        studio_id = future.result()
+                        # Emit from this QThread, never from an executor thread.
+                        if studio_id and not self._stop_event.is_set():
+                            self.logo_downloaded.emit(studio_id)
+                    except Exception as exc:
+                        if not self._stop_event.is_set():
+                            logger.error(
+                                "Error processing logo for %s: %s",
+                                studio.get("id", "Unknown"),
+                                exc,
+                            )
+        finally:
+            if self._stop_event.is_set():
+                for future in pending:
+                    future.cancel()
+            # Never let the QThread die while executor tasks still use its state.
+            executor.shutdown(wait=True)
+
+    def _prepare_image(self, image):
+        """Normalize transparent logos to white and trim transparent padding."""
         width = image.width()
         height = image.height()
 
@@ -154,14 +193,15 @@ class LogoWorker(QtCore.QThread):
         max_y = 0
 
         found = False
+        has_transparency = False
 
         # Check alpha channel for content boundaries
         for y in range(height):
             for x in range(width):
-                # get alpha
-                # QImage.pixel() returns #AARRGGBB unsigned int
                 pixel = image.pixel(x, y)
                 alpha = (pixel >> 24) & 0xFF
+                if alpha < 255:
+                    has_transparency = True
 
                 if alpha > 0:
                     found = True
@@ -177,9 +217,20 @@ class LogoWorker(QtCore.QThread):
         if not found:
             return image
 
-        # Add 1 to max to include the pixel
+        # Only recolor images that actually have transparent background pixels.
+        # Whitening a fully opaque raster would create a featureless white box.
+        if not has_transparency:
+            return image
+
+        painter = QtGui.QPainter(image)
+        try:
+            painter.setCompositionMode(QtGui.QPainter.CompositionMode_SourceIn)
+            painter.fillRect(image.rect(), QtGui.QColor(255, 255, 255, 255))
+        finally:
+            painter.end()
+
         rect = QtCore.QRect(min_x, min_y, max_x - min_x + 1, max_y - min_y + 1)
         return image.copy(rect)
 
     def stop(self):
-        self._is_running = False
+        self._stop_event.set()

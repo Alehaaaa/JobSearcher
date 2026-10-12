@@ -45,6 +45,9 @@ class ConfigManager(QtCore.QObject):
         self.jobs_cache = {}  # {studio_id: [jobs]}
 
         self.logo_worker = None
+        self._pending_logo_studios = {}
+        self._refresh_all_logos_pending = False
+        self._shutting_down = False
         self.job_worker = None
 
         from .job_scraper import JobScraper
@@ -281,54 +284,82 @@ class ConfigManager(QtCore.QObject):
             self.download_logos(missing)
 
     def refresh_logos(self):
-        """Force re-download of all logos. Deletes existing cache first."""
-        # Clear existing logo files
-        if os.path.exists(self.logos_dir):
-            for f in os.listdir(self.logos_dir):
-                if f.endswith(".png"):
-                    try:
-                        filepath = os.path.join(self.logos_dir, f)
-                        os.remove(filepath)
-                    except OSError:
-                        pass
+        """Queue a safe full logo refresh without blocking Maya's UI thread."""
+        self._pending_logo_studios.clear()
+        self._refresh_all_logos_pending = True
+        if self.logo_worker is not None:
+            if self.logo_worker.isRunning():
+                self.logo_worker.stop()
+            return
+        self._perform_full_logo_refresh()
 
-        # Emit cleared for all
-        for studio in self.studios:
-            self.logo_cleared.emit(studio.get("id"))
-
+    def _perform_full_logo_refresh(self):
+        """Refresh every cache entry without discarding known-good fallbacks."""
+        self._refresh_all_logos_pending = False
+        # Each successful download atomically replaces its old cache file. A
+        # transient network/certificate failure therefore cannot erase a logo.
         self.download_logos(self.studios)
 
     def refresh_studio_logo(self, studio_data):
-        """Refreshes a specific studio logo."""
+        """Queue a logo replacement; the old cached file stays valid until then."""
         sid = studio_data.get("id")
-        # Remove existing
-        path = self.get_logo_path(sid)
-        if path and os.path.exists(path):
-            try:
-                os.remove(path)
-            except OSError:
-                pass
-
-        self.logo_cleared.emit(sid)
+        if not sid:
+            return
         self.download_logos([studio_data])
 
     def download_logos(self, studios_to_download):
-        if self.logo_worker and self.logo_worker.isRunning():
-            self.logo_worker.stop()
-            self.logo_worker.wait()
+        if self._shutting_down:
+            return
 
-        self.logo_worker = LogoWorker(studios_to_download, self.logos_dir)
-        # Relay specific update and trigger generic update
-        self.logo_worker.logo_downloaded.connect(self.logo_downloaded.emit)
-        self.logo_worker.logo_downloaded.connect(lambda sid: self.logos_updated.emit())  # Generic update
-        self.logo_worker.start()
+        # Deduplicate queued work by studio id and retain the newest config.
+        for studio in studios_to_download:
+            sid = studio.get("id")
+            if sid and studio.get("logo_url"):
+                self._pending_logo_studios[sid] = dict(studio)
+
+        # Keep one authoritative QThread until Qt delivers its finished signal.
+        # isRunning() may already be false while that signal is still queued.
+        if self.logo_worker is not None:
+            return
+        self._start_pending_logo_worker()
+
+    def _start_pending_logo_worker(self):
+        if self._shutting_down or self.logo_worker is not None or not self._pending_logo_studios:
+            return
+
+        batch = list(self._pending_logo_studios.values())
+        self._pending_logo_studios.clear()
+
+        worker = LogoWorker(batch, self.logos_dir)
+        self.logo_worker = worker
+        worker.logo_downloaded.connect(self._on_logo_downloaded)
+        worker.finished.connect(lambda: self._on_logo_worker_finished(worker))
+        worker.start()
+
+    def _on_logo_downloaded(self, studio_id):
+        self.logo_downloaded.emit(studio_id)
+        self.logos_updated.emit()
+
+    def _on_logo_worker_finished(self, worker):
+        if worker is not self.logo_worker:
+            return
+        self.logo_worker = None
+        worker.deleteLater()
+        if self._shutting_down:
+            return
+        if self._refresh_all_logos_pending:
+            self._perform_full_logo_refresh()
+        else:
+            self._start_pending_logo_worker()
 
     def get_logo_path(self, studio_id):
-        # We only look for PNG now as we standardize
+        if not studio_id:
+            return None
         path = os.path.join(self.logos_dir, f"{studio_id}.png")
-        if os.path.exists(path):
-            return path
-        return None
+        try:
+            return path if os.path.getsize(path) > 0 else None
+        except OSError:
+            return None
 
     # --- Job Fetching ---
 
@@ -496,6 +527,8 @@ class ConfigManager(QtCore.QObject):
 
     def cleanup(self):
         """Stops any running workers and prevents further updates."""
+        self._shutting_down = True
+        self._pending_logo_studios.clear()
         # Stop this object from sending any more signals to the UI
         self.blockSignals(True)
 
@@ -506,6 +539,9 @@ class ConfigManager(QtCore.QObject):
                 pass
             if self.logo_worker.isRunning():
                 self.logo_worker.stop()
+                # Shutdown may briefly wait for in-flight network timeouts, but
+                # returning with live executor tasks can crash Maya during unload.
+                self.logo_worker.wait()
 
         if self.job_worker:
             try:
@@ -514,6 +550,7 @@ class ConfigManager(QtCore.QObject):
                 pass
             if self.job_worker.isRunning():
                 self.job_worker.stop()
+                self.job_worker.wait()
 
         logger.info("ConfigManager cleanup complete: Workers signaled to stop and signals disconnected.")
 
@@ -521,8 +558,6 @@ class ConfigManager(QtCore.QObject):
 class JobWorker(QtCore.QThread):
     jobs_ready = QtCore.Signal(str, list)  # studio_id, list of job dicts
     jobs_failed = QtCore.Signal(str, str)  # studio_id, error_message
-    finished = QtCore.Signal()
-
     def __init__(self, studios, scraper, parent=None):
         super(JobWorker, self).__init__(parent)
         self.studios = studios
@@ -567,10 +602,8 @@ class JobWorker(QtCore.QThread):
             for f in pending:
                 f.cancel()
 
-        executor.shutdown(wait=False)
-
-        if self._is_running:
-            self.finished.emit()
+        # Do not outlive scraper calls that still reference this worker/scraper.
+        executor.shutdown(wait=True)
 
     def stop(self):
         self._is_running = False

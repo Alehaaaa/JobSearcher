@@ -125,20 +125,30 @@ class StudioWidget(QtWidgets.QFrame):
 
         act_edit = menu.addAction("Edit Studio...")
         act_edit.setIcon(resources.get_icon("edit.svg"))
-        act_edit.triggered.connect(self.open_edit_dialog)
 
-        menu.exec_(self.logo_label.mapToGlobal(pos))
+        selected_action = menu.exec_(self.logo_label.mapToGlobal(pos))
+        if selected_action is act_edit:
+            # Let the context menu's nested event loop close before opening another
+            # modal loop. Nested menus/dialogs are crash-prone in Maya's Qt host.
+            QtCore.QTimer.singleShot(0, self.open_edit_dialog)
 
     def open_edit_dialog(self):
         from .studio_dialog import StudioDialog
 
         existing_ids = [s.get("id") for s in self.config_manager.get_studios()]
+        stable_parent = self.window()
         dialog = StudioDialog(
-            self.studio_data, self, existing_ids=existing_ids, config_manager=self.config_manager
+            self.studio_data,
+            stable_parent,
+            existing_ids=existing_ids,
+            config_manager=self.config_manager,
         )
         if dialog.exec_():
-            # Delay update to avoid hard crash in Maya when parent widget is destroyed from child dialog signal
-            QtCore.QTimer.singleShot(10, lambda: self.config_manager.update_studio(dialog.studio_data))
+            # Do not capture this StudioWidget: updating the config rebuilds and
+            # schedules all studio cards, including this one, for deletion.
+            manager = self.config_manager
+            studio_data = dict(dialog.studio_data)
+            QtCore.QTimer.singleShot(0, lambda: manager.update_studio(studio_data))
 
     def load_logo(self):
         sid = self.studio_data.get("id")

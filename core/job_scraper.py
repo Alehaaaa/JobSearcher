@@ -9,6 +9,7 @@ import urllib3
 
 import html
 import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -50,6 +51,10 @@ class JobScraper:
                     jobs = self.fetch_html(studio_for_url)
                 elif strategy == "json_text":
                     jobs = self.fetch_json_text(studio_for_url)
+                elif strategy == "remix":
+                    jobs = self.fetch_remix(studio_for_url)
+                elif strategy == "static":
+                    jobs = []
                 elif strategy == "rss":
                     jobs = self.fetch_rss(studio_for_url)
                 else:
@@ -78,7 +83,64 @@ class JobScraper:
                 all_jobs.append(job)
                 seen_links.add(dup_key)
 
+        detail_page = scraping.get("detail_page")
+        if detail_page and all_jobs:
+            all_jobs = self._enrich_from_detail_pages(all_jobs, detail_page)
+
         return all_jobs
+
+    def _enrich_from_detail_pages(self, jobs, config):
+        """Fill selected job fields from their linked detail pages in parallel."""
+        mapping = config.get("map", {})
+        if not mapping:
+            return jobs
+
+        def enrich(job):
+            link = job.get("link")
+            if not link:
+                return job
+
+            try:
+                response = requests.get(
+                    link,
+                    headers={**self.session.headers, **config.get("headers", {})},
+                    timeout=config.get("timeout", 10),
+                    verify=False,
+                )
+                response.raise_for_status()
+                soup = BeautifulSoup(response.text, "html.parser")
+
+                for field, field_config in mapping.items():
+                    if isinstance(field_config, str):
+                        selector, attr = field_config, "text"
+                    else:
+                        selector = field_config.get("selector")
+                        attr = field_config.get("attr", "text")
+                    if not selector:
+                        continue
+
+                    value = extract_html(
+                        soup,
+                        selector,
+                        attr=attr,
+                        index=field_config.get("index") if isinstance(field_config, dict) else None,
+                        default="",
+                    )
+                    value = self._apply_mapping_logic(str(value or ""), field_config)
+                    value = self._clean_text(value)
+                    if value:
+                        job[field] = value
+            except Exception as e:
+                logger.warning(f"Could not enrich job detail {link}: {e}")
+            return job
+
+        max_workers = min(config.get("max_workers", 6), len(jobs))
+        enriched = [None] * len(jobs)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(enrich, job.copy()): index for index, job in enumerate(jobs)}
+            for future in as_completed(futures):
+                enriched[futures[future]] = future.result()
+        return enriched
 
     def _handle_pre_visit(self, config):
         """Visits a URL to set cookies and optionally extracts CSRF token."""
@@ -107,7 +169,12 @@ class JobScraper:
     def _apply_mapping_logic(self, val, m):
         """Centralized logic for split, regex, prefix, and suffix."""
         if not isinstance(m, dict):
-            return val
+            return str(val or "")
+
+        if isinstance(val, list):
+            val = m.get("join", ", ").join(str(item) for item in val if item not in (None, ""))
+        elif val is not None and not isinstance(val, str):
+            val = str(val)
 
         # If mapping only contains "default", return it immediately
         if set(m.keys()) == {"default"}:
@@ -134,13 +201,24 @@ class JobScraper:
             else:
                 val = ""
 
-        # 3. Prefix/Suffix
+        # 3. Lightweight transforms for feeds that expose slugs instead of titles.
+        replace_cfg = m.get("replace")
+        if replace_cfg and val:
+            replacements = replace_cfg if isinstance(replace_cfg, list) else [replace_cfg]
+            for replacement in replacements:
+                if isinstance(replacement, dict):
+                    val = val.replace(replacement.get("old", ""), replacement.get("new", ""))
+
+        if m.get("title_case") and val:
+            val = val.title()
+
+        # 4. Prefix/Suffix
         prefix = m.get("prefix", "")
         suffix = m.get("suffix", "")
         if val:
             val = f"{prefix}{val}{suffix}"
 
-        # 4. Default if empty
+        # 5. Default if empty
         if not val and "default" in m:
             val = m["default"]
 
@@ -266,7 +344,7 @@ class JobScraper:
                     val = careers_url
                 else:
                     path = m.get("path") if isinstance(m, dict) else m
-                    val = str(extract_json(item, path, "") or "")
+                    val = extract_json(item, path, "") or ""
                 return self._apply_mapping_logic(val, m)
 
             job = self._finalize_job(
@@ -283,6 +361,64 @@ class JobScraper:
 
         return jobs
 
+    def fetch_remix(self, studio):
+        """Fetch and decode Remix `.data` responses serialized with devalue."""
+        careers_url = studio.get("careers_url")
+        scraping = studio.get("scraping", {})
+        response = self.session.get(
+            careers_url,
+            params=scraping.get("params", {}),
+            headers=scraping.get("headers", {}),
+        )
+        response.raise_for_status()
+        data = self._decode_devalue(response.json())
+        items = extract_json(data, scraping.get("path", ""), default=[])
+        if not items:
+            return []
+        if not isinstance(items, list):
+            items = [items]
+        return self._parse_json_items(items, studio, careers_url)
+
+    def _decode_devalue(self, values):
+        """Expand the reference table used by Remix/devalue JSON responses."""
+        if not isinstance(values, list):
+            return values
+
+        cache = {}
+        special_values = {
+            -1: None,  # undefined
+            -2: None,  # sparse-array hole
+            -3: float("nan"),
+            -4: float("inf"),
+            -5: float("-inf"),
+            -6: -0.0,
+        }
+
+        def decode(reference):
+            if isinstance(reference, bool) or not isinstance(reference, int):
+                return reference
+            if reference < 0:
+                return special_values.get(reference)
+            if reference in cache:
+                return cache[reference]
+
+            value = values[reference]
+            if isinstance(value, dict):
+                decoded = {}
+                cache[reference] = decoded
+                for key_reference, child_reference in value.items():
+                    key = decode(int(key_reference.lstrip("_")))
+                    decoded[str(key)] = decode(child_reference)
+                return decoded
+            if isinstance(value, list):
+                decoded = []
+                cache[reference] = decoded
+                decoded.extend(decode(child_reference) for child_reference in value)
+                return decoded
+            return value
+
+        return decode(0)
+
     def fetch_json_text(self, studio):
         careers_url = studio.get("careers_url")
         scraping = studio.get("scraping", {})
@@ -295,6 +431,9 @@ class JobScraper:
         else:
             response = self.session.get(careers_url, params=params, headers=headers)
         response.raise_for_status()
+
+        if scraping.get("encoding"):
+            response.encoding = scraping["encoding"]
 
         jt_cfg = scraping.get("json_text", {})
         json_regex = jt_cfg.get("regex")
