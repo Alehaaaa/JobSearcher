@@ -1,4 +1,4 @@
-name: Verify website source
+name: Verify and publish website
 
 on:
   push:
@@ -7,7 +7,11 @@ on:
     branches: [web-app]
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: jobsearcher-web-source
+  cancel-in-progress: false
 
 jobs:
   web-checks:
@@ -22,3 +26,26 @@ jobs:
       - run: npm --prefix web ci
       - run: npm --prefix web test
       - run: npm --prefix web run build
+      - name: Publish validated web build to github-pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/web-app'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          deployment_dir="$(mktemp -d)"
+          trap 'rm -rf "${deployment_dir}"' EXIT
+          git clone --quiet --branch github-pages --single-branch \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "${deployment_dir}"
+          # Preserve branch documentation and the deployment branch itself.
+          rsync -a --delete --exclude '.git/' --exclude 'README.md' \
+            web/dist/ "${deployment_dir}/"
+          touch "${deployment_dir}/.nojekyll"
+          git -C "${deployment_dir}" add -A
+          if git -C "${deployment_dir}" diff --cached --quiet; then
+            echo 'GitHub Pages already matches validated web source.'
+            exit 0
+          fi
+          git -C "${deployment_dir}" -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "Deploy validated JobSearcher website"
+          git -C "${deployment_dir}" push origin github-pages
