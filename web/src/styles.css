@@ -175,6 +175,7 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .job-level { font-size: 10.5px; overflow: hidden; max-width: 76px; text-overflow: ellipsis; white-space: nowrap; }
 .job-age { white-space: nowrap; flex-shrink: 0; font-size: 10.5px; font-variant-numeric: tabular-nums; }
 .sidebar-company-initials { display: inline-grid; place-items: center; border-radius: 4px; width: 18px; height: 18px; min-width: 18px; color: var(--primary-strong); background: var(--hover); font-size: 11px; font-weight: 750; }
+.sidebar-company-logo { display: inline-block; width: 18px; height: 18px; min-width: 18px; border-radius: 4px; object-fit: contain; background: transparent; }
 .sheet-split-button { display: flex; align-items: stretch; }
 .sheet-split-button .sheet-toggle { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: 0; }
 .sheet-split-button .sheet-menu-trigger { border-top-left-radius: 0; border-bottom-left-radius: 0; width: 25px; padding: 0 5px; justify-content: center; }
@@ -213,7 +214,9 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .empty-state p { color: var(--muted); font-size: 13px; line-height: 1.55; }
 .secondary-button { background: white; border: 1px solid #ccdaf2; padding: 9px 14px; font-size: 12.5px; color: var(--primary); font-weight: 650; margin-top: 9px; }
 .secondary-button:hover { background: #edf4ff; }
-.page-footer { padding: 27px 0 0; font-size: 11px; color: #9ca7b7; text-align: center; }
+.page-footer { padding: 27px 0 0; font-size: 11px; color: #9ca7b7; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.page-footer a { color: var(--primary-strong); text-decoration: underline; text-underline-offset: 2px; }
+.page-footer a:hover { color: var(--primary); }
 .mobile-menu, .mobile-close { display: none; }
 .spinning { animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }

@@ -5,6 +5,7 @@ import { groupSheetStudios, mergeStudioJobs } from '../sheet-companies.js';
 import { displayLevel, displayLocation, relativeJobTime } from './job-presentation.js';
 import { whenNearViewport } from './viewport.js';
 import { resolveStudioBrand } from './studio-logo.js';
+import { VERIFIED_STUDIO_HOMEPAGES } from './verified-studio-homepages.js';
 import {
   analyzeJob, countLevels, countLocations, createSearchMatcher,
   LEVELS, matchesLevel, matchesLocation, REGIONS,
@@ -176,11 +177,26 @@ function JobAge({ job }) {
     title={sourceLabel + ' ' + new Date(time).toLocaleString()}>{relativeJobTime(time)}</time>;
 }
 
+function SidebarStudioLogo({ brand }) {
+  const [failedStep, setFailedStep] = useState(0);
+  useEffect(() => { setFailedStep(0); }, [brand?.logoUrl, brand?.fallbackLogoUrl]);
+  const logo = failedStep === 0 ? brand?.logoUrl
+    : failedStep === 1 ? brand?.fallbackLogoUrl : '';
+  return logo
+    ? <img className="sidebar-company-logo" src={logo} alt="" width="18" height="18"
+        loading="lazy" decoding="async"
+        onError={() => setFailedStep(previous =>
+          previous === 0 && brand?.fallbackLogoUrl ? 1 : 2)}/>
+    : <span className="sidebar-company-initials" aria-hidden="true">{brand?.initials || '?'}</span>;
+}
+
 function StudioCard({ studio, brand, data, jobs, onRefresh, expanded, onExpand }) {
   const career = careersUrl(studio);
   const logo = brand?.logoUrl || '';
-  const [logoFailed, setLogoFailed] = useState(false);
-  useEffect(() => { setLogoFailed(false); }, [logo]);
+  const [logoFailedStep, setLogoFailedStep] = useState(0);
+  useEffect(() => { setLogoFailedStep(0); }, [logo, brand?.fallbackLogoUrl]);
+  const displayedLogo = logoFailedStep === 0 ? logo
+    : logoFailedStep === 1 ? brand?.fallbackLogoUrl || '' : '';
   const [nearViewport, setNearViewport] = useState(false);
   const cardRef = useRef(null);
   useEffect(() => {
@@ -198,7 +214,9 @@ function StudioCard({ studio, brand, data, jobs, onRefresh, expanded, onExpand }
         <div className="studio-brand">
           {career ? (
             <a href={career} target="_blank" rel="noopener noreferrer" className="studio-logo-link" title={'Open ' + studio.name + ' careers'}>
-              {nearViewport && logo && !logoFailed ? <img src={logo} alt={studio.name} className="studio-logo" loading="lazy" decoding="async" onError={() => setLogoFailed(true)} />
+              {nearViewport && displayedLogo ? <img src={displayedLogo} alt={studio.name} className="studio-logo" loading="lazy" decoding="async"
+                  onError={() => setLogoFailedStep(previous =>
+                    previous === 0 && brand?.fallbackLogoUrl ? 1 : 2)}/>
                 : <span className="studio-brand-fallback"><span className="studio-brand-initials">{brand?.initials || '?'}</span><strong className="logo-fallback">{studio.name}</strong></span>}
             </a>
           ) : <strong className="logo-fallback">{studio.name}</strong>}
@@ -315,7 +333,9 @@ export default function App() {
   const sortedStudios = useMemo(() => sortStudios(sheetGroups.studios, order),
     [sheetGroups.studios, order]);
   const brandsById = useMemo(() => new Map(sortedStudios.map(studio =>
-    [studio.id, resolveStudioBrand(studio, studios)])), [sortedStudios, studios]);
+    [studio.id, resolveStudioBrand(studio, studios, {
+      verifiedCompanyHomepages: VERIFIED_STUDIO_HOMEPAGES,
+    })])), [sortedStudios, studios]);
   const disabledIds = useMemo(() => new Set(disabled), [disabled]);
   const activeStudios = useMemo(() => sortedStudios.filter(studio => !disabledIds.has(studio.id)), [sortedStudios, disabledIds]);
   const matcher = useMemo(() => createSearchMatcher(jobSearch), [jobSearch]);
@@ -616,7 +636,7 @@ export default function App() {
               onDrop={event => { event.preventDefault(); reorder(draggedStudio || event.dataTransfer.getData('text/plain'), studio.id); setDraggedStudio(null); }}>
               <Icon name="drag" className="drag-handle" />
               <input type="checkbox" checked={enabled} aria-label={'Enable ' + studio.name} onChange={() => toggleList(setDisabled, studio.id)} />
-              {studio.sheetOnly && <span className="sidebar-company-initials" aria-hidden="true">{brandsById.get(studio.id)?.initials || '?'}</span>}
+              {studio.sheetOnly && <SidebarStudioLogo brand={brandsById.get(studio.id)}/>}
               <button className="sidebar-studio-name" type="button" onClick={() => enabled ? jumpToStudio(studio.id) : toggleList(setDisabled, studio.id)} title={studio.name}>{studio.name}</button>
               {enabled && studioData?.hasFetched && <span className={'sidebar-job-count' + (studioData?.error ? ' error' : '')}>{studioData?.error && !amount ? '!' : amount}</span>}
               {!studioSearch && <div className="sort-controls">
@@ -755,7 +775,10 @@ export default function App() {
               {!activeStudios.length ? 'Enable all studios' : hasFilters ? 'Clear filters' : 'Show all studios'}
             </button>
           </div>}
-          <div className="page-footer">Results are loaded live in your browser. The optional community spreadsheet is a third-party contributed list, separate from verified studio feeds. Careers sites may restrict cross-origin requests.</div>
+          <div className="page-footer">
+            <span>Results are loaded live in your browser. The optional community spreadsheet is a third-party contributed list, separate from verified studio feeds. Careers sites may restrict cross-origin requests.</span>
+            <span>Logos by <a href="https://logos.apistemic.com" target="_blank" rel="noopener noreferrer">apistemic logos</a></span>
+          </div>
         </main>
       </div>
     </div>
