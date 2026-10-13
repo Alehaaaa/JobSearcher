@@ -32,11 +32,13 @@ function usePreference(key, fallback) {
   return [value, setValue];
 }
 
-function validUrl(value, base) {
+function validUrl(value, base, allowMailto = false) {
   if (!value) return null;
   try {
     const url = new URL(value, base || window.location.href);
-    return ['https:', 'http:'].includes(url.protocol) ? url.href : null;
+    if (['https:', 'http:'].includes(url.protocol)) return url.href;
+    if (allowMailto && url.protocol === 'mailto:' && /^[^\s@?#]+@[^\s@?#]+/.test(url.pathname)) return url.href;
+    return null;
   } catch {
     return null;
   }
@@ -52,11 +54,14 @@ function markSeen(studio, entries, history) {
   const unique = new Map();
   for (const job of entries) {
     const title = String(job.title || '').trim();
-    const link = validUrl(job.link, careersUrl(studio));
+    const link = validUrl(job.link, careersUrl(studio), true);
     if (!title || !link) continue;
-    const dedupe = title.toLowerCase() + '|' + link.toLowerCase();
+    // Workable's public widget can publish separate offices under one link.
+    // Keep those listings distinct so London/Paris location filters work.
+    const workplace = job.source === 'Workable public GET' ? '|' + String(job.location || '').trim().toLowerCase() : '';
+    const dedupe = title.toLowerCase() + '|' + link.toLowerCase() + workplace;
     if (unique.has(dedupe)) continue;
-    const key = JSON.stringify([studio.id, link, title]);
+    const key = JSON.stringify([studio.id, link, title, workplace]);
     const previous = history[key];
     const firstSeen = previous?.firstSeen || now;
     history[key] = { firstSeen, lastSeen: now };
@@ -65,6 +70,8 @@ function markSeen(studio, entries, history) {
       location: String(job.location || '').trim(),
       extraLink: validUrl(job.extraLink, careersUrl(studio)),
       firstSeen,
+      proxied: job.proxied === true,
+      source: job.source || 'direct',
     }));
   }
   // Limit growth without losing first-seen dates for positions currently listed.
@@ -160,6 +167,7 @@ function StudioCard({ studio, data, jobs, onRefresh, expanded, onExpand }) {
           ) : <strong className="logo-fallback">{studio.name}</strong>}
         </div>
         <div className="card-actions">
+          {data?.proxied && <span title="Some listings were retrieved through the free cors.dev proxy" aria-label="Proxy used: cors.dev" style={{fontSize: '10px', color: 'var(--primary)', border: '1px solid var(--divider)', borderRadius: '5px', padding: '3px 5px'}}>Proxy</span>}
           {data?.loading ? <span className="mini-spinner" role="status" aria-label={'Loading ' + studio.name} /> : data?.hasFetched && <span className="card-count" title="Matching positions">{jobs.length}</span>}
           <button className="icon-button refresh-studio" type="button" onClick={() => onRefresh(studio)}
             aria-label={'Refresh ' + studio.name} title={'Refresh ' + studio.name} disabled={Boolean(data?.loading)}><Icon name="refresh" /></button>
@@ -179,9 +187,9 @@ function StudioCard({ studio, data, jobs, onRefresh, expanded, onExpand }) {
         ) : (
           <div className="job-list">
             {jobs.slice(0, limit).map(job => (
-              <div className="job-item" key={job.link + '|' + job.title}>
+              <div className="job-item" key={job.link + '|' + job.title + '|' + job.location}>
                 <a className="job-link" href={job.link} target="_blank" rel="noopener noreferrer" title={'View ' + job.title}>
-                  <span className="job-title">{job.title}</span>
+                  <span className="job-title">{job.title}{job.proxied && <span title="Retrieved via cors.dev" style={{marginLeft: '6px', fontSize: '10px', color: 'var(--primary)'}}>via proxy</span>}</span>
                   <span className="job-meta">
                     {job.location && <span className="job-location" title={job.location}><Icon name="pin"/>{job.location}</span>}
                     <JobAge firstSeen={job.firstSeen}/>
@@ -249,7 +257,8 @@ export default function App() {
       const jobs = markSeen(studio, fetched, historyRef.current);
       const warnings = Array.isArray(fetched.errors) ? fetched.errors.map(errorText) : [];
       setCards(previous => ({ ...previous, [studio.id]: {
-        jobs, warnings, loading: false, hasFetched: true, error: null, updatedAt: Date.now(),
+        jobs, warnings, proxied: fetched.proxied === true, sources: fetched.sources || [],
+        loading: false, hasFetched: true, error: null, updatedAt: Date.now(),
       } }));
     } catch (error) {
       setCards(previous => ({ ...previous, [studio.id]: {
@@ -353,6 +362,7 @@ export default function App() {
   const visibleResults = studioResults.filter(item => !hideEmpty || item.data?.loading || item.data?.error || !item.data?.hasFetched || item.jobs.length > 0);
   const completedCount = activeStudios.filter(studio => cards[studio.id]?.hasFetched).length;
   const errorCount = activeStudios.filter(studio => cards[studio.id]?.error || cards[studio.id]?.warnings?.length).length;
+  const proxyCount = activeStudios.filter(studio => cards[studio.id]?.proxied).length;
   const loadingCount = activeStudios.filter(studio => cards[studio.id]?.loading || !cards[studio.id]?.hasFetched).length;
   const hasFilters = Boolean(jobSearch || regions.length || countries.length || levels.length);
   const shownSidebar = sortedStudios.filter(studio => studio.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(studioSearch.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()));
@@ -483,6 +493,7 @@ export default function App() {
               {matcher.literalFallback && <span className="status-note">Invalid regex · using literal search</span>}
               {loadingCount > 0 && <span className="status-note"><span className="mini-spinner"/>Checking {loadingCount}…</span>}
               {errorCount > 0 && <span className="status-note warning"><Icon name="warning"/>{errorCount} connection {errorCount === 1 ? 'issue' : 'issues'}</span>}
+              {proxyCount > 0 && <span className="status-note" title="Results retrieved through the public cors.dev service after direct browser requests failed">{proxyCount} {proxyCount === 1 ? 'studio' : 'studios'} via cors.dev proxy</span>}
             </div>
           </div>
           {configError && <div className="config-error" role="alert"><Icon name="warning"/><div><strong>{configError.startsWith('Latest GitHub configuration unavailable') ? 'Using bundled studio configuration' : 'Configuration update failed'}</strong><p>{configError}</p></div><button type="button" onClick={() => void refreshAll(true)}>Try again</button></div>}

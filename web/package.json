@@ -7,13 +7,16 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build --configLoader runner",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --test test-scraper.mjs"
+    "test": "node --test test-scraper.mjs test-alternative-feeds.mjs",
+    "test:live": "node test-alternative-feeds.mjs --live",
+    "audit:live": "node audit-live.mjs --concurrency=6 --timeout=25 --out=audit-results/latest.json"
   },
   "dependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "jsdom": "^26.1.0",
     "vite": "^7.1.11"
   }
 }

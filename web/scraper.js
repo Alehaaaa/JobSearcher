@@ -1,8 +1,15 @@
+import { fetchAlternativeJobs } from "./alternative-feeds.js";
+
 // Studio scrapers run entirely inside the visitor's browser on GitHub Pages.
 // Each device fetches the live configuration and contacts studio endpoints itself.
 const CONFIG_URL = "https://raw.githubusercontent.com/Alehaaaa/JobUI/main/config/studios.json";
 const BUNDLED_CONFIG_URL = new URL("./data/studios.json", import.meta.url);
 const INVALID_TITLES = new Set(["view job", "details", "read more", "apply", "careers", "unknown"]);
+const FREE_PROXY_ORIGIN = "https://proxy.cors.dev/";
+const FREE_PROXY_TIMEOUT_MS = 10_000;
+const FREE_PROXY_MAX_BYTES = 1_048_576;
+const SENSITIVE_HEADERS = /^(?:authorization|proxy-authorization|cookie|set-cookie|x-api-key|x-auth(?:entication)?(?:-.*)?|x-csrf(?:-.*)?|x-xsrf(?:-.*)?|x-session(?:-.*)?|x-access-token)$/i;
+const SENSITIVE_PARAMS = /^(?:access_?token|id_?token|refresh_?token|api_?key|apikey|auth(?:orization)?|password|passwd|secret|client_?secret|csrf(?:_?token)?|xsrf(?:_?token)?|session(?:_?id|_?key|_?token)?|signature|sig|x-amz-.*|key)$/i;
 const BLOCKED_HEADERS = new Set([
   "user-agent", "referer", "host", "cookie", "content-length", "origin", "connection",
   "accept-encoding", "access-control-request-headers", "access-control-request-method"
@@ -198,6 +205,20 @@ export function extractJSON(root, path = "") {
   return wildcard ? nodes : (nodes.length === 1 ? nodes[0] : (nodes.length ? nodes : undefined));
 }
 
+// Main JSON is shared with Python: translate leading Python inline flags (e.g.
+// Industrial Brothers' (?i)) to JavaScript's constructor flags.
+function mappingRegex(pattern, defaultFlags = "s") {
+  let source = pattern;
+  const flags = new Set(defaultFlags);
+  while (true) {
+    const match = /^\(\?([ims]+)\)/.exec(source);
+    if (!match) break;
+    for (const flag of match[1]) flags.add(flag);
+    source = source.slice(match[0].length);
+  }
+  return new RegExp(source, [...flags].join(""));
+}
+
 function applyRule(raw, rule) {
   if (typeof rule !== "object" || rule === null || Array.isArray(rule)) return stringify(raw);
   if (Object.keys(rule).length === 1 && Object.hasOwn(rule, "default")) return stringify(rule.default);
@@ -212,7 +233,7 @@ function applyRule(raw, rule) {
   }
   if (rule.regex && value) {
     try {
-      const match = value.match(new RegExp(rule.regex, "s"));
+      const match = value.match(mappingRegex(rule.regex, "s"));
       value = match ? (match[1] ?? match[0]) : "";
     } catch (error) {
       throw new StudioFetchError(`Invalid mapping regex ${rule.regex}: ${error.message}`, { code: "INVALID_MAPPING", cause: error });
@@ -273,11 +294,13 @@ function removeLocationFromTitle(title, location) {
     .replace(/\(\s*\)|\[\s*\]|\{\s*\}/g, "").trim();
 }
 
-function safeURL(value, base) {
+function safeURL(value, base, allowMailto = false) {
   if (!value) return "";
   try {
     const url = new URL(value, base);
-    return /^https?:$/.test(url.protocol) ? url.href : "";
+    if (/^https?:$/.test(url.protocol)) return url.href;
+    if (allowMailto && url.protocol === "mailto:" && /^[^\s@?#]+@[^\s@?#]+/.test(url.pathname)) return url.href;
+    return "";
   } catch { return ""; }
 }
 
@@ -289,13 +312,13 @@ function finishJob(values, studio, rootURL, mapping) {
   }
   if (!title || INVALID_TITLES.has(title.toLowerCase())) return null;
   const base = safeURL(studio.website) || rootURL;
-  const link = safeURL(values.link || rootURL, base);
+  const link = safeURL(values.link || rootURL, base, true);
   if (!link) return null;
   let extraLink = values.extra_link;
   const extraRule = mapping.extra_link;
   if (extraLink && extraRule?.regex_link) {
     try {
-      const match = extraLink.match(new RegExp(extraRule.regex_link, "s"));
+      const match = extraLink.match(mappingRegex(extraRule.regex_link, "s"));
       extraLink = match ? (match[1] ?? match[0]) : "";
     } catch { extraLink = ""; }
   }
@@ -479,7 +502,7 @@ function embeddedJSON(html, studio) {
   const regex = settings.regex || null;
   if (regex) {
     for (const source of sources) {
-      const match = source.match(new RegExp(regex, "s"));
+      const match = source.match(mappingRegex(regex, "s"));
       if (!match) continue;
       const content = settings.unescape ? decodeMarkup(match[1] ?? match[0]) : match[1] ?? match[0];
       try { return JSON.parse(content); } catch { /* Keep searching other scripts. */ }
@@ -556,6 +579,85 @@ function requestOptions(config) {
   return options;
 }
 
+// cors.dev's anonymous GET/HEAD service allows 1 MiB within 10 seconds.
+// Do not expose credentials, tokens, cookies, local URLs or CSRF flows.
+function isPublicProxyEligible(target, config, options) {
+  if (!["GET", "HEAD"].includes(options.method)) return false;
+  if (config.pre_visit || config.payload != null || config.form_data != null) return false;
+  if (options.body != null || options.credentials === "include") return false;
+  if (Object.keys(config.headers ?? {}).some(name => SENSITIVE_HEADERS.test(name))) return false;
+  if ([...options.headers.keys()].some(name => SENSITIVE_HEADERS.test(name))) return false;
+  let url;
+  try { url = new URL(target); } catch { return false; }
+  if (url.protocol !== "https:" || url.username || url.password) return false;
+  if (url.hostname === "proxy.cors.dev" || url.hostname === "localhost" ||
+      url.hostname.endsWith(".localhost") || url.hostname.endsWith(".local") ||
+      url.hostname.endsWith(".internal") || url.hostname.endsWith(".test") ||
+      /^(?:127\.|10\.|192\.168\.|169\.254\.|172\.(?:1[6-9]|2\d|3[01])\.|0\.|::1$|\[::1\]$)/.test(url.hostname)) return false;
+  if (typeof location !== "undefined" && url.origin === location.origin) return false;
+  return [...url.searchParams.keys()].every(name => !SENSITIVE_PARAMS.test(name));
+}
+
+async function fetchViaFreeProxy(target, method) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FREE_PROXY_TIMEOUT_MS);
+  const proxyURL = FREE_PROXY_ORIGIN + target;
+  try {
+    // Never forward custom headers or browser credentials to this third party.
+    const response = await fetch(proxyURL, {
+      method, mode: "cors", credentials: "omit", cache: "no-store", signal: controller.signal
+    });
+    if (!response.ok) {
+      throw new StudioFetchError("cors.dev returned HTTP " + response.status + " for " + target, {
+        code: "PROXY_HTTP_ERROR", url: target, status: response.status
+      });
+    }
+    const declaredLength = Number(response.headers.get("Content-Length"));
+    if (declaredLength > FREE_PROXY_MAX_BYTES) {
+      throw new StudioFetchError("cors.dev response exceeded its 1 MiB limit for " + target, {
+        code: "PROXY_TOO_LARGE", url: target
+      });
+    }
+    if (method === "HEAD") return new Response(null, { status: response.status, headers: response.headers });
+    let payload;
+    if (response.body?.getReader) {
+      const reader = response.body.getReader();
+      const chunks = [];
+      let size = 0;
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > FREE_PROXY_MAX_BYTES) {
+          await reader.cancel().catch(() => {});
+          throw new StudioFetchError("cors.dev response exceeded its 1 MiB limit for " + target, {
+            code: "PROXY_TOO_LARGE", url: target
+          });
+        }
+        chunks.push(value);
+      }
+      payload = new Uint8Array(size);
+      let offset = 0;
+      for (const chunk of chunks) { payload.set(chunk, offset); offset += chunk.byteLength; }
+    } else {
+      payload = new Uint8Array(await response.arrayBuffer());
+      if (payload.byteLength > FREE_PROXY_MAX_BYTES) {
+        throw new StudioFetchError("cors.dev response exceeded its 1 MiB limit for " + target, {
+          code: "PROXY_TOO_LARGE", url: target
+        });
+      }
+    }
+    return new Response(payload, { status: response.status, headers: response.headers });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new StudioFetchError("cors.dev did not finish within 10 seconds for " + target, {
+        code: "PROXY_TIMEOUT", url: target, cause: error
+      });
+    }
+    throw error;
+  } finally { clearTimeout(timer); }
+}
+
 async function makeRequest(url, config, studio) {
   const target = queryURL(url, config.params);
   const options = requestOptions(config);
@@ -588,25 +690,43 @@ async function makeRequest(url, config, studio) {
     }
   }
   let response;
+  let proxied = false;
   try {
     response = await fetchWithTimeout(target, options, config.timeout);
   } catch (cause) {
-    if (cause?.code === "TIMEOUT") {
-      throw new StudioFetchError(`${studio.name || studio.id}: ${target} timed out`, {
-        code: "TIMEOUT", url: target, studioId: studio.id, cause
-      });
+    let proxyFailure;
+    if (isPublicProxyEligible(target, config, options)) {
+      try {
+        response = await fetchViaFreeProxy(target, options.method);
+        proxied = true;
+      } catch (error) { proxyFailure = error; }
     }
-    throw new StudioFetchError(
-      `${studio.name || studio.id}: browser could not fetch ${target}. The studio may block cross-origin requests (CORS), or the network/endpoint may be unavailable; browsers do not disclose which caused a fetch failure.`,
-      { code: "CORS_OR_NETWORK", url: target, studioId: studio.id, cause }
-    );
+    if (!response) {
+      const details = proxyFailure
+        ? " Free cors.dev fallback also failed: " + proxyFailure.message + "."
+        : " Public proxy fallback was not eligible for this request.";
+      if (cause?.code === "TIMEOUT") {
+        const error = new StudioFetchError((studio.name || studio.id) + ": " + target + " timed out." + details, {
+          code: "TIMEOUT", url: target, studioId: studio.id, cause
+        });
+        if (proxyFailure) error.proxyError = proxyFailure;
+        throw error;
+      }
+      const error = new StudioFetchError(
+        (studio.name || studio.id) + ": browser could not fetch " + target +
+        ". The studio may block cross-origin requests (CORS), or the network/endpoint may be unavailable; browsers do not disclose which caused a fetch failure." + details,
+        { code: "CORS_OR_NETWORK", url: target, studioId: studio.id, cause }
+      );
+      if (proxyFailure) error.proxyError = proxyFailure;
+      throw error;
+    }
   }
   if (!response.ok) {
     throw new StudioFetchError(`${studio.name || studio.id}: ${new URL(target).host} returned HTTP ${response.status}`, {
       code: "HTTP_ERROR", url: target, studioId: studio.id, status: response.status
     });
   }
-  return response;
+  return { response, proxied, source: proxied ? "cors.dev" : "direct", url: target };
 }
 
 async function fetchWithTimeout(url, options, seconds = 20) {
@@ -625,15 +745,122 @@ async function fetchWithTimeout(url, options, seconds = 20) {
   } finally { clearTimeout(timer); }
 }
 
+// Workable's /api/v3/accounts/:account/jobs requires POST, which browsers
+// cannot send cross-origin without the server allowing the preflight.
+// The four configured Workable feeds also publish their jobs through a
+// publicly readable widget GET API. Only use it for this exact configuration
+// after the original POST fails at the browser network/CORS layer.
+function workableWidgetAccount(studio, url) {
+  const config = studio.scraping;
+  if (config?.strategy !== "json" || String(config.method).toUpperCase() !== "POST" ||
+      config.path !== "results[*]" || config.pre_visit || config.payload || config.form_data ||
+      Object.keys(config.headers ?? {}).some(name => SENSITIVE_HEADERS.test(name))) return null;
+  let endpoint;
+  try { endpoint = new URL(url); } catch { return null; }
+  const match = /^\/api\/v3\/accounts\/([a-z0-9-]+)\/jobs\/?$/.exec(endpoint.pathname);
+  if (endpoint.protocol !== "https:" || endpoint.hostname !== "apply.workable.com" ||
+      endpoint.username || endpoint.password || !match ||
+      [...endpoint.searchParams.keys()].some(name => SENSITIVE_PARAMS.test(name))) return null;
+  const account = match[1];
+  const link = config.map?.link;
+  if (config.map?.title !== "title" || link?.path !== "shortcode" ||
+      link.prefix !== "https://apply.workable.com/" + account + "/j/") return null;
+  return account;
+}
+
+function workableJobLocation(job) {
+  const format = place => [place?.city, place?.country].map(stringify).filter(Boolean).join(", ");
+  const locations = Array.isArray(job.locations)
+    ? job.locations.filter(place => place && place.hidden !== true).map(format).filter(Boolean)
+    : [];
+  const uniqueLocations = [...new Set(locations)];
+  return uniqueLocations.length
+    ? uniqueLocations.join("; ")
+    : format(job) || (job.telecommuting ? "Remote" : "");
+}
+
+async function fetchWorkablePublicJobs(studio, originalURL, account) {
+  const widgetURL = "https://apply.workable.com/api/v1/widget/accounts/" +
+    encodeURIComponent(account) + "?details=true";
+  // This is a direct public GET on Workable itself, never a free proxy request.
+  const response = await fetchWithTimeout(widgetURL, {
+    method: "GET", mode: "cors", credentials: "omit", cache: "no-store"
+  }, studio.scraping.timeout ?? 12);
+  if (!response.ok) {
+    throw new StudioFetchError("Workable public widget returned HTTP " + response.status, {
+      code: "WORKABLE_WIDGET_HTTP", url: widgetURL, studioId: studio.id, status: response.status
+    });
+  }
+  const widget = await response.json();
+  if (!Array.isArray(widget?.jobs)) {
+    throw new StudioFetchError("Workable public widget returned no jobs array", {
+      code: "WORKABLE_WIDGET_INVALID", url: widgetURL, studioId: studio.id
+    });
+  }
+  const results = widget.jobs.map(job => ({
+    ...job, location: { display: workableJobLocation(job) }
+  }));
+  // Preserve original configured mapping, especially link.prefix + shortcode.
+  const jobs = parseJSONItems({ results }, studio, originalURL);
+  return { jobs, proxied: false, source: "Workable public GET", url: originalURL, requestUrl: widgetURL };
+}
+
+const PIXAR_DISNEY_CAREERS_URL =
+  "https://www.disneycareers.com/en/business/custom_fields.industrycustomfield/pixar%20animation%20studios/391/5";
+
+// This alternate public Disney listings page matches Pixar's Workday jobs.
+// Do not use it for other Workday studios, other Pixar URLs or HTTP failures.
+function isPixarBlockedWorkdayPost(studio, url) {
+  const config = studio?.scraping;
+  if (studio?.id !== "pixar" || config?.strategy !== "json" ||
+      String(config.method).toUpperCase() !== "POST" ||
+      config.path !== "jobPostings[*]" || config.map?.title !== "title" ||
+      config.map?.link !== "externalPath" || config.map?.location !== "locationsText" ||
+      config.pre_visit || Object.keys(config.headers ?? {}).some(name => SENSITIVE_HEADERS.test(name))) {
+    return false;
+  }
+  let endpoint;
+  try { endpoint = new URL(url); } catch { return false; }
+  return endpoint.protocol === "https:" &&
+    endpoint.hostname === "pixar.wd501.myworkdayjobs.com" &&
+    endpoint.pathname === "/wday/cxs/pixar/Pixar_External_Career_Site/jobs" &&
+    !endpoint.search && !endpoint.username && !endpoint.password;
+}
+
+async function fetchPixarDisneyPublicJobs(studio, originalURL) {
+  // makeRequest already attempts direct GET, then cors.dev on eligible network
+  // failures. Never reuse the original Workday POST body or request headers.
+  const alternate = await makeRequest(PIXAR_DISNEY_CAREERS_URL, {
+    method: "GET", timeout: studio.scraping.timeout ?? 12
+  }, studio);
+  const doc = parseDocument(await alternate.response.text());
+  const jobs = [];
+  for (const item of doc.querySelectorAll("a[data-job-id]")) {
+    const title = cleanText(item.querySelector("h2")?.textContent);
+    const location = cleanText(item.querySelector("span.job-location")?.textContent);
+    const href = safeURL(item.getAttribute("href"), "https://www.disneycareers.com");
+    if (!title || !href || new URL(href).origin !== "https://www.disneycareers.com") continue;
+    const job = finishJob({ title, link: href, location }, {
+      ...studio, website: "https://www.disneycareers.com"
+    }, PIXAR_DISNEY_CAREERS_URL, {});
+    if (job) jobs.push(job);
+  }
+  return {
+    jobs, proxied: alternate.proxied, source: "Disney public GET",
+    url: originalURL, requestUrl: PIXAR_DISNEY_CAREERS_URL
+  };
+}
+
 async function fetchOne(studio, url) {
   const config = studio.scraping;
   try {
-    const response = await makeRequest(url, config, studio);
+    const { response, proxied, source } = await makeRequest(url, config, studio);
+    let jobs;
     switch (config.strategy) {
-      case "static": return [];
-      case "json": return parseJSONItems(await response.json(), studio, url);
-      case "remix": return parseJSONItems(decodeDevalue(await response.json()), studio, url);
-      case "json_text": return parseJSONItems(embeddedJSON(await response.text(), studio), studio, url);
+      case "static": jobs = []; break;
+      case "json": jobs = parseJSONItems(await response.json(), studio, url); break;
+      case "remix": jobs = parseJSONItems(decodeDevalue(await response.json()), studio, url); break;
+      case "json_text": jobs = parseJSONItems(embeddedJSON(await response.text(), studio), studio, url); break;
       case "html": {
         let html = await response.text();
         if (config.json_html_field) {
@@ -644,14 +871,52 @@ async function fetchOne(studio, url) {
             });
           }
         }
-        return parseHTMLItems(html, studio, url);
+        jobs = parseHTMLItems(html, studio, url);
+        break;
       }
-      case "rss": return parseHTMLItems(await response.text(), studio, url, true);
+      case "rss": jobs = parseHTMLItems(await response.text(), studio, url, true); break;
       default: throw new StudioFetchError(`Unsupported scraper strategy ${config.strategy}`, {
         code: "UNSUPPORTED_STRATEGY", url, studioId: studio.id
       });
     }
+    return { jobs, proxied, source, url };
   } catch (cause) {
+    // Digital Domain has an HTTP-only RSS feed and WildBrain's career site
+    // rejects cross-origin browser access. Their public listings can also be
+    // read through a GET-only Markdown mirror with verifiable original links.
+    if (cause?.code === "CORS_OR_NETWORK" &&
+        (studio.id === "digitaldomain" || studio.id === "wildbrain")) {
+      try {
+        const jobs = await fetchAlternativeJobs(studio);
+        if (jobs?.length) {
+          return { jobs, proxied: true, source: "Jina Reader public GET", url };
+        }
+      } catch (fallbackError) {
+        cause.alternativeFeedError = fallbackError;
+        cause.message += " Public GET reader fallback also failed: " + fallbackError.message;
+      }
+    }
+    if (cause?.code === "CORS_OR_NETWORK" && isPixarBlockedWorkdayPost(studio, url)) {
+      try {
+        return await fetchPixarDisneyPublicJobs(studio, url);
+      } catch (disneyError) {
+        // Keep the failed Workday request's error category when Disney is
+        // unavailable too; append the recovery failure for the UI.
+        cause.disneyFallbackError = disneyError;
+        cause.message += " Disney public GET fallback also failed: " + disneyError.message;
+      }
+    }
+    const account = cause?.code === "CORS_OR_NETWORK" ? workableWidgetAccount(studio, url) : null;
+    if (account) {
+      try {
+        return await fetchWorkablePublicJobs(studio, url, account);
+      } catch (widgetError) {
+        // Preserve the actual failed POST diagnosis; a failed recovery is
+        // informative but must not conceal the primary network error.
+        cause.workableWidgetError = widgetError;
+        cause.message += " Workable public GET fallback also failed: " + widgetError.message;
+      }
+    }
     if (cause instanceof StudioFetchError) throw cause;
     throw new StudioFetchError(
       `${studio.name || studio.id}: cannot parse ${config.strategy} response from ${url}: ${cause?.message || cause}`,
@@ -670,7 +935,7 @@ function dedupeKey(job) {
   return `${job.title.trim().toLowerCase()}|${url.href.toLowerCase()}`;
 }
 
-async function enrichDetails(jobs, studio, errors) {
+async function enrichDetails(jobs, studio, errors, sources) {
   const config = studio.scraping.detail_page;
   if (!config?.map || !jobs.length) return jobs;
   const workers = Math.max(1, Math.min(config.max_workers || 6, 12));
@@ -681,10 +946,15 @@ async function enrichDetails(jobs, studio, errors) {
       const index = cursor++;
       const job = result[index];
       try {
-        const response = await makeRequest(job.link, {
+        const detail = await makeRequest(job.link, {
           method: "GET", headers: config.headers, timeout: config.timeout ?? 10
         }, studio);
-        const doc = parseDocument(await response.text());
+        if (detail.proxied) {
+          job.proxied = true;
+          job.source = "cors.dev";
+          sources.push({ url: job.link, proxied: true, source: "cors.dev", detail: true });
+        }
+        const doc = parseDocument(await detail.response.text());
         for (const [field, rule] of Object.entries(config.map)) {
           const value = cleanText(htmlValue(doc, rule, job.link));
           if (value && (field === "title" || field === "location")) job[field] = value;
@@ -713,14 +983,21 @@ export async function fetchJobs(studio) {
   const results = await Promise.allSettled(urls.map(url => fetchOne(studio, url)));
   const errors = [];
   const jobs = [];
+  const sources = [];
   const seen = new Set();
   for (const result of results) {
     if (result.status === "rejected") { errors.push(result.reason); continue; }
-    for (const job of result.value) {
-      const key = dedupeKey(job);
+    const { jobs: endpointJobs, proxied, source, url, requestUrl } = result.value;
+    sources.push({ url, proxied, source, ...(requestUrl ? { requestUrl } : {}) });
+    for (const job of endpointJobs) {
+      // The public Workable widget can publish the same shortcode at distinct
+      // offices (e.g. London and Paris). Keep those location-specific openings
+      // separate; normal multi-endpoint deduplication remains unchanged.
+      const key = dedupeKey(job) + (source === "Workable public GET"
+        ? "|" + String(job.location ?? "").trim().toLowerCase() : "");
       if (seen.has(key)) continue;
       seen.add(key);
-      jobs.push(job);
+      jobs.push({ ...job, proxied: job.proxied ?? proxied, source: job.source || source });
     }
   }
   if (errors.length === results.length) {
@@ -733,7 +1010,9 @@ export async function fetchJobs(studio) {
       code: "ALL_ENDPOINTS_FAILED", studioId: studio.id, cause: error
     });
   }
-  const enriched = await enrichDetails(jobs, studio, errors);
+  const enriched = await enrichDetails(jobs, studio, errors, sources);
   Object.defineProperty(enriched, "errors", { value: errors, enumerable: false });
+  Object.defineProperty(enriched, "proxied", { value: sources.some(item => item.proxied), enumerable: false });
+  Object.defineProperty(enriched, "sources", { value: sources, enumerable: false });
   return enriched;
 }

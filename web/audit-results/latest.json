@@ -1,0 +1,3504 @@
+{
+  "meta": {
+    "auditStartedAt": "2026-10-13T07:53:15.944Z",
+    "auditFinishedAt": "2026-10-13T07:53:31.679Z",
+    "gitRef": "origin/main",
+    "resolvedGitSha": "199015e6b2d922047200954fba9c902152b99bd8",
+    "python": "/Users/aleha/Documents/Programming/GitHub/JobUI/.venv/bin/python",
+    "node": "v22.23.3",
+    "concurrency": 6,
+    "timeoutSeconds": 25,
+    "studioCount": 81,
+    "configSource": "origin/main:config/studios.json",
+    "pythonSource": "origin/main:core/job_scraper.py",
+    "jsSource": "web/scraper.js",
+    "engine": "Node fetch + jsdom DOMParser",
+    "limitations": [
+      "Node fetch does not enforce CORS; these results cannot establish GitHub Pages availability.",
+      "External job postings change in real time; Python and JavaScript request the same feed separately.",
+      "Both empty lists without request warnings are marked empty, not as verified positive matches.",
+      "The original Python scraper catches some endpoint failures internally; captured ERROR logs are reported as partial_failure."
+    ]
+  },
+  "summary": {
+    "match": 70,
+    "empty": 10,
+    "error": 1
+  },
+  "studios": [
+    {
+      "id": "disney",
+      "name": "Walt Disney Animation",
+      "strategy": "html",
+      "careersUrl": "https://www.disneycareers.com/en/search-jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.69,
+        "warnings": [],
+        "count": 5
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.9,
+        "warnings": [],
+        "count": 5
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "ilm",
+      "name": "Industrial Light & Magic",
+      "strategy": "html",
+      "careersUrl": "https://www.disneycareers.com/en/search-jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.65,
+        "warnings": [],
+        "count": 10
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.94,
+        "warnings": [],
+        "count": 10
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "pixar",
+      "name": "Pixar",
+      "strategy": "json",
+      "careersUrl": "https://pixar.wd501.myworkdayjobs.com/wday/cxs/pixar/Pixar_External_Career_Site/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.15,
+        "warnings": [],
+        "count": 4
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.32,
+        "warnings": [],
+        "count": 4
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "ranchito",
+      "name": "El Ranchito",
+      "strategy": "html",
+      "careersUrl": "https://elranchito.es/careers/open-positions/",
+      "status": "empty",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.44,
+        "warnings": [],
+        "count": 0
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.68,
+        "warnings": [],
+        "count": 0
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "dreamworks",
+      "name": "DreamWorks",
+      "strategy": "json",
+      "careersUrl": "https://www.nbcunicareers.com/api/opensearch/brjobs?_format=json&keyword=DreamWorks",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.27,
+        "warnings": [],
+        "count": 10
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.5,
+        "warnings": [],
+        "count": 10
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "sonypicturesanimation",
+      "name": "Sony Pictures Animation",
+      "strategy": "html",
+      "careersUrl": "https://job-boards.greenhouse.io/sonypicturesanimation",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.68,
+        "warnings": [],
+        "count": 4
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.86,
+        "warnings": [],
+        "count": 4
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "sonypicturesimageworks",
+      "name": "Sony Pictures Imageworks",
+      "strategy": "html",
+      "careersUrl": "https://job-boards.greenhouse.io/sonypicturesimageworks",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.46,
+        "warnings": [],
+        "count": 49
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.69,
+        "warnings": [],
+        "count": 49
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "blur",
+      "name": "Blur Studio",
+      "strategy": "html",
+      "careersUrl": "https://job-boards.greenhouse.io/blurstudio",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.47,
+        "warnings": [],
+        "count": 2
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.66,
+        "warnings": [],
+        "count": 2
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "guerrillagames",
+      "name": "Guerrilla Games",
+      "strategy": "html",
+      "careersUrl": "https://job-boards.greenhouse.io/guerrilla-games",
+      "status": "empty",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.68,
+        "warnings": [],
+        "count": 0
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.63,
+        "warnings": [],
+        "count": 0
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "dneg",
+      "name": "DNEG",
+      "strategy": "html",
+      "careersUrl": "https://jobs.jobvite.com/double-negative-visual-effects/?nl=1&fr=true",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.81,
+        "warnings": [],
+        "count": 83
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1,
+        "warnings": [],
+        "count": 83
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "illumination",
+      "name": "Illumination",
+      "strategy": "json",
+      "careersUrl": "https://api.lever.co/v0/postings/illumination?mode=json",
+      "status": "empty",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1,
+        "warnings": [],
+        "count": 0
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.14,
+        "warnings": [],
+        "count": 0
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "fortiche",
+      "name": "Fortiche",
+      "strategy": "html",
+      "careersUrl": "https://forticheprod.com/become-a-forticher/",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 2.05,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 2.1,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "mikros",
+      "name": "Mikros Animation",
+      "strategy": "json",
+      "careersUrl": "https://api.smartrecruiters.com/v1/companies/rodeofx/postings?language=en",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.42,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.58,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "steamroller",
+      "name": "Steamroller Animation",
+      "strategy": "html",
+      "careersUrl": "https://ats.rippling.com/steamroller-animation/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.73,
+        "warnings": [],
+        "count": 4
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.25,
+        "warnings": [],
+        "count": 4
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "giant",
+      "name": "Giant Animation",
+      "strategy": "html",
+      "careersUrl": "https://giantanimation.ie/wp-json/wp/v2/pages/157?_fields=content",
+      "status": "empty",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 4.82,
+        "warnings": [],
+        "count": 0
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 5.43,
+        "warnings": [],
+        "count": 0
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "netflix",
+      "name": "Netflix Animation Studios",
+      "strategy": "json",
+      "careersUrl": "https://explore.jobs.netflix.net/api/apply/v2/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.53,
+        "warnings": [],
+        "count": 10
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.97,
+        "warnings": [],
+        "count": 10
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "iconcreative",
+      "name": "Icon Creative Studio",
+      "strategy": "json",
+      "careersUrl": "https://iconcreative.bamboohr.com/careers/list",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.99,
+        "warnings": [],
+        "count": 28
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.01,
+        "warnings": [],
+        "count": 28
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "megalisvfx",
+      "name": "Megalis",
+      "strategy": "json",
+      "careersUrl": "https://megalisvfx.bamboohr.com/careers/list",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.62,
+        "warnings": [],
+        "count": 4
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.76,
+        "warnings": [],
+        "count": 4
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "wildchild",
+      "name": "Wild Child Animation",
+      "strategy": "static",
+      "careersUrl": "https://wildchildanimation.com/careers",
+      "status": "empty",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.14,
+        "warnings": [],
+        "count": 0
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.24,
+        "warnings": [],
+        "count": 0
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "flyingbark",
+      "name": "Flying Bark Productions",
+      "strategy": "json",
+      "careersUrl": "https://flyingbark.bamboohr.com/careers/list",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.72,
+        "warnings": [],
+        "count": 12
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.64,
+        "warnings": [],
+        "count": 12
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "rodeofx",
+      "name": "Rodeo FX",
+      "strategy": "json",
+      "careersUrl": "https://api.smartrecruiters.com/v1/companies/rodeofx/postings?language=en",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.33,
+        "warnings": [],
+        "count": 39
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.55,
+        "warnings": [],
+        "count": 39
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "framestore",
+      "name": "Framestore",
+      "strategy": "html",
+      "careersUrl": "https://framestore.recruitee.com",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.39,
+        "warnings": [],
+        "count": 10
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.7,
+        "warnings": [],
+        "count": 10
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "skydance",
+      "name": "Skydance",
+      "strategy": "json",
+      "careersUrl": "https://api.lever.co/v0/postings/skydance?mode=json",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.39,
+        "warnings": [],
+        "count": 11
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.5,
+        "warnings": [],
+        "count": 11
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "illusorium",
+      "name": "Illusorium",
+      "strategy": "rss",
+      "careersUrl": "https://illusorium-studios.factorial.es/sitemap.xml",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.64,
+        "warnings": [],
+        "count": 5
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.69,
+        "warnings": [],
+        "count": 5
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "littlezoo",
+      "name": "Little Zoo Studio",
+      "strategy": "html",
+      "careersUrl": "https://www.littlezoostudio.com/careers",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.4,
+        "warnings": [],
+        "count": 4
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.7,
+        "warnings": [],
+        "count": 4
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "twinpines",
+      "name": "Twin Pines",
+      "strategy": "html",
+      "careersUrl": "https://twinpines.es/recruitment",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.32,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.5,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "unitimage",
+      "name": "Unit Image",
+      "strategy": "html",
+      "careersUrl": "https://www.unit-image.fr/jobs/",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.63,
+        "warnings": [],
+        "count": 8
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.71,
+        "warnings": [],
+        "count": 8
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "milkvfx",
+      "name": "Milk VFX",
+      "strategy": "html",
+      "careersUrl": "https://www.milk-vfx.com/careers/?loc=UK",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.94,
+        "warnings": [],
+        "count": 3
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.96,
+        "warnings": [],
+        "count": 3
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "goodbyekansas",
+      "name": "Goodbye Kansas",
+      "strategy": "html",
+      "careersUrl": "https://goodbyekansas.teamtailor.com/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.47,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.58,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "airshipinteractive",
+      "name": "Airship Interactive",
+      "strategy": "html",
+      "careersUrl": "https://airshipinteractive.teamtailor.com/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.4,
+        "warnings": [],
+        "count": 11
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.57,
+        "warnings": [],
+        "count": 11
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "ilpvfx",
+      "name": "Important Looking Pirates VFX",
+      "strategy": "html",
+      "careersUrl": "https://ilpvfx.teamtailor.com/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.46,
+        "warnings": [],
+        "count": 3
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.66,
+        "warnings": [],
+        "count": 3
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "thethirdfloor",
+      "name": "The Third Floor",
+      "strategy": "html",
+      "careersUrl": "https://thethirdfloorinc.hrmdirect.com/employment/job-openings.php?search=true&",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.52,
+        "warnings": [],
+        "count": 3
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.85,
+        "warnings": [],
+        "count": 3
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "outpostvfx",
+      "name": "Outpost VFX",
+      "strategy": "json",
+      "careersUrl": "https://api.smartrecruiters.com/v1/companies/OutpostVFX/postings/",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.42,
+        "warnings": [],
+        "count": 31
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.63,
+        "warnings": [],
+        "count": 31
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "nexusstudios",
+      "name": "Nexus Studios",
+      "strategy": "json",
+      "careersUrl": "https://apply.workable.com/api/v3/accounts/nexusstudios/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.37,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.59,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "pixomondo",
+      "name": "Pixomondo",
+      "strategy": "json",
+      "careersUrl": "https://apply.workable.com/api/v3/accounts/pxo/jobs",
+      "status": "empty",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.45,
+        "warnings": [],
+        "count": 0
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.69,
+        "warnings": [],
+        "count": 0
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "risefx",
+      "name": "Rise FX",
+      "strategy": "html",
+      "careersUrl": "https://risefx.com/rise-visual-effects-studios-jobs.php",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.55,
+        "warnings": [],
+        "count": 7
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.75,
+        "warnings": [],
+        "count": 7
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "eyeline",
+      "name": "Eyeline",
+      "strategy": "json",
+      "careersUrl": "https://api.lever.co/v0/postings/Eyeline?mode=json",
+      "status": "empty",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.94,
+        "warnings": [],
+        "count": 0
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.12,
+        "warnings": [],
+        "count": 0
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "luma",
+      "name": "Luma Pictures",
+      "strategy": "html",
+      "careersUrl": "https://www.lumapictures.com/careers",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.48,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.63,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "digitaldomain",
+      "name": "Digital Domain",
+      "strategy": "html",
+      "careersUrl": "http://careers.digitaldomain.com/rss.php",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.66,
+        "warnings": [],
+        "count": 73
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.77,
+        "warnings": [],
+        "count": 73
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "trixter",
+      "name": "Trixter",
+      "strategy": "html",
+      "careersUrl": "https://www.trixter.de/jobs/",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.33,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.5,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "weta",
+      "name": "Wētā FX",
+      "strategy": "json_text",
+      "careersUrl": "https://careers.wetafx.co.nz/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.55,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.63,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "titmouse",
+      "name": "Titmouse",
+      "strategy": "html",
+      "careersUrl": "https://titmouse.net/careers/",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.73,
+        "warnings": [],
+        "count": 4
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.78,
+        "warnings": [],
+        "count": 4
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "mainframe",
+      "name": "Mainframe Studios",
+      "strategy": "json",
+      "careersUrl": "https://secure.ukgready.ca/ta/rest/ui/recruitment/companies/%7C6214859/job-requisitions",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.72,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.55,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "flyingwildhog",
+      "name": "Flying Wild Hog",
+      "strategy": "json",
+      "careersUrl": "https://flyingwildhog-open-positions-form.productive24.com/v1/list/fetch",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.47,
+        "warnings": [],
+        "count": 5
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.52,
+        "warnings": [],
+        "count": 5
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "brownbag",
+      "name": "Brown Bag Films",
+      "strategy": "html",
+      "careersUrl": [
+        "https://milo-hr.my.salesforce-sites.com/recruit/fRecruit__ApplyJobList?portal=Toronto",
+        "https://milo-hr.my.salesforce-sites.com/recruit/fRecruit__ApplyJobList?portal=Dublin"
+      ],
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.9,
+        "warnings": [],
+        "count": 5
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.24,
+        "warnings": [],
+        "count": 5
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "ubisoft",
+      "name": "Ubisoft",
+      "strategy": "json",
+      "careersUrl": "https://avcvysejs1-dsn.algolia.net/1/indexes/*/queries?x-algolia-agent=Algolia%20for%20JavaScript%20(4.8.4)%3B%20Browser%20(lite)%3B%20JS%20Helper%20(3.11.0)%3B%20react%20(16.12.0)%3B%20react-instantsearch%20(6.8.3)&x-algolia-api-key=d2ec5782c4eb549092cfa4ed5062599a&x-algolia-application-id=AVCVYSEJS1",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.13,
+        "warnings": [],
+        "count": 179
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.14,
+        "warnings": [],
+        "count": 179
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "cinesite",
+      "name": "Cinesite",
+      "strategy": "json",
+      "careersUrl": [
+        "https://cinesitelondon.bamboohr.com/careers/list",
+        "https://cinesitemontreal.bamboohr.com/careers/list",
+        "https://cinesitevancouver.bamboohr.com/careers/list"
+      ],
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.17,
+        "warnings": [],
+        "count": 9
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.76,
+        "warnings": [],
+        "count": 9
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "platige",
+      "name": "Platige Image",
+      "strategy": "html",
+      "careersUrl": "https://platige.com/careers/",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.52,
+        "warnings": [],
+        "count": 4
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.62,
+        "warnings": [],
+        "count": 4
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "riot",
+      "name": "Riot Games",
+      "strategy": "html",
+      "careersUrl": "https://www.riotgames.com/en/work-with-us",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.42,
+        "warnings": [],
+        "count": 157
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.61,
+        "warnings": [],
+        "count": 157
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "image-engine",
+      "name": "Image Engine",
+      "strategy": "json",
+      "careersUrl": "https://imageengine.bamboohr.com/careers/list",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.92,
+        "warnings": [],
+        "count": 21
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.08,
+        "warnings": [],
+        "count": 21
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "oneofus",
+      "name": "One of Us",
+      "strategy": "json",
+      "careersUrl": "https://apply.workable.com/api/v3/accounts/one-of-us/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.39,
+        "warnings": [],
+        "count": 10
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.59,
+        "warnings": [],
+        "count": 10
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "liquiddevelopment",
+      "name": "Liquid Development",
+      "strategy": "json",
+      "careersUrl": "https://apply.workable.com/api/v3/accounts/liquid-development/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.41,
+        "warnings": [],
+        "count": 10
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.58,
+        "warnings": [],
+        "count": 10
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "threedoubles",
+      "name": "3Doubles Producciones",
+      "strategy": "rss",
+      "careersUrl": "https://3doubles.factorial.es/sitemap.xml",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.68,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.68,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "lightbox",
+      "name": "Lightbox Animation Studios",
+      "strategy": "json",
+      "careersUrl": "https://lightbox-animation-studios.jobs.personio.com/search.json",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.44,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.54,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "hampa",
+      "name": "Hampa Studio",
+      "strategy": "html",
+      "careersUrl": "https://hampastudio.teamtailor.com/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.73,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.87,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "realtimeuk",
+      "name": "Realtime",
+      "strategy": "html",
+      "careersUrl": "https://careers.realtimeuk.com/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.53,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.6,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "superprod",
+      "name": "Superprod",
+      "strategy": "json_text",
+      "careersUrl": "https://careers.werecruit.io/en/superprod",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.77,
+        "warnings": [],
+        "count": 4
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.07,
+        "warnings": [],
+        "count": 4
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "atlantis",
+      "name": "Atlantis",
+      "strategy": "json_text",
+      "careersUrl": "https://careers.werecruit.io/en/atlantis",
+      "status": "empty",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.81,
+        "warnings": [],
+        "count": 0
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.95,
+        "warnings": [],
+        "count": 0
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "wildbrain",
+      "name": "WildBrain",
+      "strategy": "html",
+      "careersUrl": "https://wildbrain-career.talent-soft.com/accueil.aspx?LCID=1033",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.84,
+        "warnings": [],
+        "count": 9
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.04,
+        "warnings": [],
+        "count": 9
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "buck",
+      "name": "Buck",
+      "strategy": "json_text",
+      "careersUrl": "https://buck.co/careers",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 2.64,
+        "warnings": [],
+        "count": 2
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 3.49,
+        "warnings": [],
+        "count": 2
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "bluezoo",
+      "name": "Blue Zoo",
+      "strategy": "html",
+      "careersUrl": "https://careers.blue-zoo.co.uk/vacancies/vacancy-search-results.aspx?view=list",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.03,
+        "warnings": [],
+        "count": 12
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.19,
+        "warnings": [],
+        "count": 12
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "squeeze",
+      "name": "Squeeze Studio",
+      "strategy": "json_text",
+      "careersUrl": "https://squeezestudio.recruitee.com/l/en/",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.34,
+        "warnings": [],
+        "count": 4
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.67,
+        "warnings": [],
+        "count": 4
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "zoicstudios",
+      "name": "Zoic Studios",
+      "strategy": "html",
+      "careersUrl": "https://zoicstudios.applytojob.com/apply/",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.72,
+        "warnings": [],
+        "count": 9
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.97,
+        "warnings": [],
+        "count": 9
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "mrxfx",
+      "name": "Mr. X",
+      "strategy": "html",
+      "careersUrl": "https://mrxfx.com/careers/",
+      "status": "empty",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.78,
+        "warnings": [],
+        "count": 0
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 2.17,
+        "warnings": [],
+        "count": 0
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "craftyapes",
+      "name": "Crafty Apes",
+      "strategy": "json",
+      "careersUrl": "https://jobs.dayforcehcm.com/api/geo/craftyapes/jobposting/search",
+      "status": "error",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.31,
+        "warnings": [],
+        "count": 16
+      },
+      "javascript": {
+        "ok": false,
+        "timeout": false,
+        "durationSeconds": 0.8,
+        "warnings": [
+          {
+            "code": "BROWSER_CSRF_RESTRICTED",
+            "message": "Studio craftyapes requires a cross-origin CSRF cookie (__Host-next-auth.csrf-token), which a browser cannot read. Use that studio's careers site directly."
+          }
+        ],
+        "error": "Studio craftyapes requires a cross-origin CSRF cookie (__Host-next-auth.csrf-token), which a browser cannot read. Use that studio's careers site directly.",
+        "count": null
+      }
+    },
+    {
+      "id": "kojimaproductions",
+      "name": "Kojima Productions",
+      "strategy": "html",
+      "careersUrl": "https://www.kojimaproductions.jp/kjpviewloader/load",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.99,
+        "warnings": [],
+        "count": 35
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.04,
+        "warnings": [],
+        "count": 35
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "industrialbrothers",
+      "name": "Industrial Brothers",
+      "strategy": "html",
+      "careersUrl": "https://industrialbrothers.applytojobs.ca/",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.1,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.24,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "upp",
+      "name": "UPP",
+      "strategy": "html",
+      "careersUrl": "https://www.upp.cz/careers",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.99,
+        "warnings": [],
+        "count": 22
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.22,
+        "warnings": [],
+        "count": 22
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "bohemia",
+      "name": "Bohemia Interactive",
+      "strategy": "remix",
+      "careersUrl": "https://careers.bohemia.net/en/open-positions.data",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.5,
+        "warnings": [],
+        "count": 8
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.56,
+        "warnings": [],
+        "count": 8
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "pfx",
+      "name": "PFX",
+      "strategy": "html",
+      "careersUrl": "https://pfx.teamtailor.com/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.35,
+        "warnings": [],
+        "count": 11
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.74,
+        "warnings": [],
+        "count": 11
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "warhorse",
+      "name": "Warhorse Studios",
+      "strategy": "html",
+      "careersUrl": "https://warhorsestudios.breezy.hr/",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.72,
+        "warnings": [],
+        "count": 3
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.86,
+        "warnings": [],
+        "count": 3
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "cdprojektred",
+      "name": "CD Projekt RED",
+      "strategy": "json",
+      "careersUrl": "https://api.smartrecruiters.com/v1/companies/CDPROJEKTRED/postings?language=en",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.33,
+        "warnings": [],
+        "count": 47
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.51,
+        "warnings": [],
+        "count": 47
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "techland",
+      "name": "Techland",
+      "strategy": "html",
+      "careersUrl": "https://techland.net/job-offers",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.66,
+        "warnings": [],
+        "count": 13
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.72,
+        "warnings": [],
+        "count": 13
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "pixelzoo",
+      "name": "Pixel Zoo",
+      "strategy": "html",
+      "careersUrl": "https://pixelzoo.com.au/wp-json/wp/v2/pages/1466?_fields=content",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 3.66,
+        "warnings": [],
+        "count": 2
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 3.68,
+        "warnings": [],
+        "count": 2
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "atomiccartoons",
+      "name": "Atomic Cartoons",
+      "strategy": "json",
+      "careersUrl": "https://boards-api.greenhouse.io/v1/boards/atomiccartoons/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.42,
+        "warnings": [],
+        "count": 3
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.64,
+        "warnings": [],
+        "count": 3
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "laika",
+      "name": "LAIKA",
+      "strategy": "json",
+      "careersUrl": "https://boards-api.greenhouse.io/v1/boards/laika/jobs",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.37,
+        "warnings": [],
+        "count": 2
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.61,
+        "warnings": [],
+        "count": 2
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "bentobox",
+      "name": "Bento Box Entertainment",
+      "strategy": "json",
+      "careersUrl": "https://api.lever.co/v0/postings/bentoboxent?mode=json",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.89,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.08,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "mercuryfilmworks",
+      "name": "Mercury Filmworks",
+      "strategy": "json",
+      "careersUrl": "https://mercuryfilmworks.bamboohr.com/careers/list",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.81,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 1.14,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "fusefx",
+      "name": "FOLKS (FuseFX)",
+      "strategy": "json",
+      "careersUrl": "https://api.smartrecruiters.com/v1/companies/FuseFX/postings?limit=100",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.42,
+        "warnings": [],
+        "count": 74
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.62,
+        "warnings": [],
+        "count": 74
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "cartoonsaloon",
+      "name": "Cartoon Saloon",
+      "strategy": "html",
+      "careersUrl": "https://api.occupop.com/api/jobs-frame/gyC74fStqF0KlxPdAaTDrq0Fvq809F1P2PsSogLMeYVWw1R9xW?search=1&button=Apply&visibility=external&fields=title,type,location,sector",
+      "status": "match",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.7,
+        "warnings": [],
+        "count": 1
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.72,
+        "warnings": [],
+        "count": 1
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    },
+    {
+      "id": "aardman",
+      "name": "Aardman Animations",
+      "strategy": "html",
+      "careersUrl": "https://jobs.aardman.com/vacancies/vacancy-search-results.aspx?view=list",
+      "status": "empty",
+      "python": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.66,
+        "warnings": [],
+        "count": 0
+      },
+      "javascript": {
+        "ok": true,
+        "timeout": false,
+        "durationSeconds": 0.69,
+        "warnings": [],
+        "count": 0
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
+      }
+    }
+  ]
+}
