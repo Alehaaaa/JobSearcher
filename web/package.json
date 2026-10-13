@@ -7,7 +7,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build --configLoader runner",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --test test-scraper.mjs test-alternative-feeds.mjs test-crafty-source.mjs test-kojima-source.mjs test-sheet-source.mjs",
+    "test": "node --test test-scraper.mjs test-alternative-feeds.mjs test-crafty-source.mjs test-kojima-source.mjs test-sheet-source.mjs test-sheet-companies.mjs",
     "test:live": "node test-alternative-feeds.mjs --live && node test-crafty-source.mjs --live && node test-kojima-source.mjs --live && node test-sheet-source.mjs --live",
     "audit:live": "node audit-live.mjs --concurrency=6 --timeout=25 --out=audit-results/latest.json"
   },
