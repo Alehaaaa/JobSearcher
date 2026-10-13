@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { fetchJobs, loadConfig } from '../scraper.js';
+import { fetchJobs, loadConfig, normalizeStudioJobLink } from '../scraper.js';
 import { fetchPublicSheet } from '../sheet-source.js';
 import { groupSheetStudios, mergeStudioJobs } from '../sheet-companies.js';
 import {
@@ -55,9 +55,8 @@ function sourceIndicator(source, proxied) {
   if (typeof source === 'string' && source.includes('Jina Reader')) {
     return { label: 'Jina Reader', details: 'Public job listings read through Jina Reader' };
   }
-  if (proxied) {
-    return { label: 'cors.dev', details: 'Public job listings fetched through the free cors.dev proxy' };
-  }
+  // Proxies are transport details, not job attributes shown to visitors.
+  if (proxied) return null;
   if (source === 'Workable public GET') {
     return { label: 'Workable API', details: 'Public Workable widget feed fetched directly' };
   }
@@ -75,7 +74,7 @@ function markSeen(studio, entries, history) {
   const unique = new Map();
   for (const job of entries) {
     const title = String(job.title || '').trim();
-    const link = validUrl(job.link, careersUrl(studio), true);
+    const link = normalizeStudioJobLink(studio, job.link, careersUrl(studio));
     if (!title || !link) continue;
     // Workable's public widget can publish separate offices under one link.
     // Keep those listings distinct so London/Paris location filters work.
@@ -463,7 +462,6 @@ export default function App() {
   const errorCount = activeStudios.filter(studio =>
     !studio.sheetOnly && (cards[studio.id]?.error || cards[studio.id]?.warnings?.length)).length +
     (showSheet && sheetState.error ? 1 : 0);
-  const proxyCount = activeStudios.filter(studio => (cards[studio.id]?.sources || []).some(source => source.proxied && !String(source.source).includes('Jina Reader'))).length;
   const readerCount = activeStudios.filter(studio => (cards[studio.id]?.sources || []).some(source => String(source.source).includes('Jina Reader'))).length;
   const loadingCount = activeStudios.filter(studio =>
     !studio.sheetOnly && (cards[studio.id]?.loading || !cards[studio.id]?.hasFetched)).length +
@@ -607,7 +605,6 @@ export default function App() {
               {matcher.literalFallback && <span className="status-note">Invalid regex · using literal search</span>}
               {loadingCount > 0 && <span className="status-note"><span className="mini-spinner"/>Checking {loadingCount}…</span>}
               {errorCount > 0 && <span className="status-note warning"><Icon name="warning"/>{errorCount} connection {errorCount === 1 ? 'issue' : 'issues'}</span>}
-              {proxyCount > 0 && <span className="status-note" title="Results retrieved through the public cors.dev service after direct browser requests failed">{proxyCount} {proxyCount === 1 ? 'studio' : 'studios'} via cors.dev proxy</span>}
               {readerCount > 0 && <span className="status-note" title="Public studio listings retrieved through Jina Reader">{readerCount} {readerCount === 1 ? 'studio' : 'studios'} via Jina Reader</span>}
             </div>
           </div>

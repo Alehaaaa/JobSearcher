@@ -306,6 +306,21 @@ function safeURL(value, base, allowMailto = false) {
   } catch { return ""; }
 }
 
+
+/** Resolve genuine DNEG Jobvite IDs through DNEG's supported careers router.
+ * Jobvite's /double-negative-visual-effects/job/ID path is not served by dneg.com.
+ * Keep unrelated studios and third-party destination URLs unchanged. */
+export function normalizeStudioJobLink(studio, raw, base) {
+  const original = safeURL(raw, base, true);
+  if (!original || studio?.id !== "dneg") return original;
+  const url = new URL(original);
+  if (!["jobs.jobvite.com", "www.dneg.com", "dneg.com"].includes(url.hostname)) return original;
+  const match = /^\/double-negative-visual-effects\/job\/([A-Za-z0-9_-]+)\/?$/.exec(url.pathname);
+  if (!match) return original;
+  return "https://www.dneg.com/join-us/open-positions?p=" +
+    encodeURIComponent("job/" + match[1]);
+}
+
 function finishJob(values, studio, rootURL, mapping) {
   const location = cleanText(values.location);
   let title = cleanText(values.title);
@@ -314,7 +329,7 @@ function finishJob(values, studio, rootURL, mapping) {
   }
   if (!title || INVALID_TITLES.has(title.toLowerCase())) return null;
   const base = safeURL(studio.website) || rootURL;
-  const link = safeURL(values.link || rootURL, base, true);
+  const link = normalizeStudioJobLink(studio, values.link || rootURL, base);
   if (!link) return null;
   let extraLink = values.extra_link;
   const extraRule = mapping.extra_link;

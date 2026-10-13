@@ -653,5 +653,44 @@ await check("Pixar public results reject off-Disney links and missing titles", (
   assert.equal(jobs.length, 4);
 }));
 
+
+await check("DNEG Jobvite identifiers use the supported DNEG application route", async () => {
+  const dneg = studio("dneg");
+  const bad = "/double-negative-visual-effects/job/o8aHAfwj";
+  const good = "https://www.dneg.com/join-us/open-positions?p=job%2Fo8aHAfwj";
+  assert.equal(normalizeStudioJobLink(dneg, bad, dneg.website), good);
+  assert.equal(normalizeStudioJobLink(dneg,
+    "https://jobs.jobvite.com" + bad, dneg.website), good);
+  assert.equal(normalizeStudioJobLink(dneg,
+    "https://www.dneg.com" + bad, dneg.website), good);
+  assert.equal(normalizeStudioJobLink(dneg, good, dneg.website), good);
+  assert.equal(normalizeStudioJobLink({ ...dneg, id: "otherstudio" }, bad, dneg.website),
+    "https://www.dneg.com/double-negative-visual-effects/job/o8aHAfwj");
+  assert.equal(normalizeStudioJobLink(dneg, "https://other.example/apply", dneg.website),
+    "https://other.example/apply");
+  assert.equal(normalizeStudioJobLink(dneg, "javascript:alert(1)", dneg.website), "");
+  const dom = new JSDOM("<!doctype html><html><body></body></html>");
+  const oldParser = globalThis.DOMParser;
+  const oldDocument = globalThis.document;
+  globalThis.DOMParser = dom.window.DOMParser;
+  globalThis.document = dom.window.document;
+  try {
+    globalThis.fetch = async () => new Response(
+      '<ul><li class="mb1"><p>Compositor</p><a href="' + bad +
+        '">Apply</a><div class="jv-job-list-location">Montreal</div></li></ul>',
+      { status: 200, headers: { "Content-Type": "text/html" } }
+    );
+    const jobs = await fetchJobs(dneg);
+    assert.equal(jobs.length, 1);
+    assert.equal(jobs[0].title, "Compositor");
+    assert.equal(jobs[0].location, "Montreal");
+    assert.equal(jobs[0].link, good);
+  } finally {
+    globalThis.DOMParser = oldParser;
+    globalThis.document = oldDocument;
+    dom.window.close();
+  }
+});
+
 console.log(`${passed} scraper checks passed`);
 if (process.exitCode) process.exit(1);
