@@ -39,7 +39,7 @@ await check("nested JSON paths, wildcards, fallbacks, and concatenation", () => 
 await check("fetch latest GitHub JSON on every call", async () => {
   let count = 0;
   globalThis.fetch = async (url, options) => {
-    assert.match(url.toString(), /raw\.githubusercontent\.com\/Alehaaaa\/JobUI\/main\/config\/studios\.json/);
+    assert.match(url.toString(), /raw\.githubusercontent\.com\/Alehaaaa\/JobSearcher\/main\/config\/studios\.json/);
     assert.equal(options.cache, "no-store");
     assert.ok(new URL(url).searchParams.has("_jobui_cache"));
     count++;

@@ -4,7 +4,7 @@ import { fetchCraftyPublicJobs } from "./crafty-source.js";
 
 // Studio scrapers run entirely inside the visitor's browser on GitHub Pages.
 // Each device fetches the live configuration and contacts studio endpoints itself.
-const CONFIG_URL = "https://raw.githubusercontent.com/Alehaaaa/JobUI/main/config/studios.json";
+const CONFIG_URL = "https://raw.githubusercontent.com/Alehaaaa/JobSearcher/main/config/studios.json";
 const BUNDLED_CONFIG_URL = new URL("./data/studios.json", import.meta.url);
 const INVALID_TITLES = new Set(["view job", "details", "read more", "apply", "careers", "unknown"]);
 const FREE_PROXY_ORIGIN = "https://proxy.cors.dev/";
