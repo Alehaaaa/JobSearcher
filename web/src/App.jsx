@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchJobs, loadConfig } from '../scraper.js';
-import { fetchPublicSheet, PUBLIC_SHEET_URL } from '../sheet-source.js';
+import { fetchPublicSheet } from '../sheet-source.js';
+import { groupSheetStudios, mergeStudioJobs } from '../sheet-companies.js';
 import {
   analyzeJob, countLevels, countLocations, createSearchMatcher,
   LEVELS, matchesLevel, matchesLocation, REGIONS,
@@ -12,10 +13,6 @@ const AUTO_OPTIONS = [
   [60, '1 minute', '1m'], [300, '5 minutes', '5m'],
   [600, '10 minutes', '10m'], [3600, '1 hour', '1h'],
 ];
-const SHEET_STUDIO = Object.freeze({
-  id: 'community-sheet', name: 'Community Jobs Sheet',
-  website: PUBLIC_SHEET_URL, careers_url: PUBLIC_SHEET_URL,
-});
 
 function readStored(key, fallback) {
   try {
@@ -109,9 +106,7 @@ function markSeen(studio, entries, history) {
     for (const key of keys.slice(0, keys.length - 10000)) delete history[key];
   }
   persist('jobHistory', history);
-  return [...unique.values()].sort((a, b) => (studio.id === SHEET_STUDIO.id
-    ? (b.postedOn || '').localeCompare(a.postedOn || '') ||
-      a.studioName.localeCompare(b.studioName) : 0) ||
+  return [...unique.values()].sort((a, b) =>
     a.title.localeCompare(b.title, undefined, { numeric: true }));
 }
 
@@ -228,6 +223,7 @@ function StudioCard({ studio, data, jobs, onRefresh, expanded, onExpand }) {
                   <span className="job-meta">
                     {job.studioName && <span className="job-location" title={job.studioName}>{job.studioName}</span>}
                     {job.location && <span className="job-location" title={job.location}><Icon name="pin"/>{job.location}</span>}
+                    {job.experienceLevel && <span className="job-location" title={'Experience level: ' + job.experienceLevel}>{job.experienceLevel}</span>}
                     {job.postedOn ? <time className="job-age" dateTime={job.postedOn} title={'Listed ' + new Date(job.postedOn).toLocaleDateString()}>Listed {new Date(job.postedOn).toLocaleDateString()}</time> : <JobAge firstSeen={job.firstSeen}/>}
                   </span>
                   <Icon name="external" className="job-external"/>
@@ -261,6 +257,7 @@ export default function App() {
   const [countries, setCountries] = usePreference('countries', []);
   const [levels, setLevels] = usePreference('levels', []);
   const [hideEmpty, setHideEmpty] = usePreference('hideEmpty', true);
+  const [hideErrored, setHideErrored] = usePreference('hideErrored', false);
   const [autoRefresh, setAutoRefresh] = usePreference('autoRefreshSeconds', 0);
   const [showSheet, setShowSheet] = usePreference('showCommunitySheet', false);
   const [sheetState, setSheetState] = useState({ jobs: [], loading: false, hasFetched: false, error: null });
@@ -279,7 +276,13 @@ export default function App() {
   const refreshAllRef = useRef(null);
   const sheetInFlight = useRef(null);
 
-  const sortedStudios = useMemo(() => sortStudios(studios, order), [studios, order]);
+  // Split public-sheet companies into the left sidebar and merge recognizable
+  // names into existing studio cards, without creating a central sheet tile.
+  const sheetGroups = useMemo(() => showSheet
+    ? groupSheetStudios(studios, sheetState.jobs)
+    : { studios, jobsByStudio: new Map() }, [studios, showSheet, sheetState.jobs]);
+  const sortedStudios = useMemo(() => sortStudios(sheetGroups.studios, order),
+    [sheetGroups.studios, order]);
   const disabledIds = useMemo(() => new Set(disabled), [disabled]);
   const activeStudios = useMemo(() => sortedStudios.filter(studio => !disabledIds.has(studio.id)), [sortedStudios, disabledIds]);
   const matcher = useMemo(() => createSearchMatcher(jobSearch), [jobSearch]);
@@ -319,7 +322,8 @@ export default function App() {
     const task = (async () => {
       setSheetState(previous => ({ ...previous, loading: true }));
       try {
-        const jobs = markSeen(SHEET_STUDIO, await fetchPublicSheet(), historyRef.current);
+        // The sheet contains many studios, not one synthetic employer.
+        const jobs = await fetchPublicSheet();
         setSheetState({ jobs, loading: false, hasFetched: true, error: null,
           updatedAt: Date.now(), lastAttemptAt: Date.now(),
           sources: [{ source: 'Public Google Sheet', proxied: false }] });
@@ -354,7 +358,8 @@ export default function App() {
 
   // Queue newly enabled studios once; use bounded browser-side concurrency.
   useEffect(() => {
-    const toLoad = activeStudios.filter(studio => !cards[studio.id]?.hasFetched && !scheduled.current.has(studio.id));
+    const toLoad = activeStudios.filter(studio =>
+      !studio.sheetOnly && !cards[studio.id]?.hasFetched && !scheduled.current.has(studio.id));
     if (!toLoad.length) return;
     toLoad.forEach(studio => scheduled.current.add(studio.id));
     void batchFetch(toLoad, async studio => {
@@ -384,7 +389,7 @@ export default function App() {
           setConfigError(latest.configWarning || '');
         } catch (error) { setConfigError(errorText(error)); }
       }
-      await batchFetch(current.filter(studio => !disabledIds.has(studio.id)), refreshOne);
+      await batchFetch(current.filter(studio => !studio.sheetOnly && !disabledIds.has(studio.id)), refreshOne);
       if (showSheet) await refreshSheet();
       } finally { setRefreshingAll(false); }
     })();
@@ -420,29 +425,49 @@ export default function App() {
     return () => document.body.classList.remove('sidebar-open');
   }, [sidebarOpen]);
 
-  const allJobs = useMemo(() => [
-    ...activeStudios.flatMap(studio => cards[studio.id]?.jobs || []),
-    ...(showSheet ? sheetState.jobs : []),
-  ], [activeStudios, cards, showSheet, sheetState.jobs]);
+  const mergedJobsByStudio = useMemo(() => new Map(activeStudios.map(studio => [
+    studio.id, mergeStudioJobs(cards[studio.id]?.jobs || [],
+      sheetGroups.jobsByStudio.get(studio.id) || [], analyzeJob),
+  ])), [activeStudios, cards, sheetGroups.jobsByStudio]);
+  const allJobs = useMemo(() => activeStudios.flatMap(studio =>
+    mergedJobsByStudio.get(studio.id) || []), [activeStudios, mergedJobsByStudio]);
   const shownJobs = useMemo(() => allJobs.filter(jobMatches), [allJobs, jobMatches]);
   const locationCounts = useMemo(() => countLocations(allJobs.filter(job => matcher.test(job) && matchesLevel(job, levels))), [allJobs, matcher, levels]);
   const levelCounts = useMemo(() => countLevels(allJobs.filter(job => matcher.test(job) && matchesLocation(job, regions, countries))), [allJobs, matcher, regions, countries]);
   const availableCountries = useMemo(() => [...new Set([...Object.keys(locationCounts.countries), ...countries])].sort(), [locationCounts, countries]);
-  const studioResults = useMemo(() => [
-    ...(showSheet ? [{ studio: SHEET_STUDIO, data: sheetState, jobs: sheetState.jobs.filter(jobMatches) }] : []),
-    ...activeStudios.map(studio => ({
-    studio, data: cards[studio.id], jobs: (cards[studio.id]?.jobs || []).filter(jobMatches),
-    })),
-  ], [activeStudios, cards, jobMatches, showSheet, sheetState]);
-  const visibleResults = studioResults.filter(item => !hideEmpty || item.data?.loading || item.data?.error || !item.data?.hasFetched || item.jobs.length > 0);
-  const completedCount = activeStudios.filter(studio => cards[studio.id]?.hasFetched).length;
-  const errorCount = activeStudios.filter(studio => cards[studio.id]?.error || cards[studio.id]?.warnings?.length).length +
+  const studioResults = useMemo(() => activeStudios.map(studio => {
+    const sheetJobs = sheetGroups.jobsByStudio.get(studio.id) || [];
+    const merged = mergedJobsByStudio.get(studio.id) || [];
+    const sheetSource = sheetJobs.length ? [{ source: 'Public Google Sheet', proxied: false }] : [];
+    const live = cards[studio.id];
+    const data = studio.sheetOnly
+      ? { ...sheetState, jobs: merged, sources: sheetSource }
+      : live
+        ? { ...live, jobs: merged, sources: [...(live.sources || []), ...sheetSource] }
+        : sheetJobs.length
+          ? { jobs: merged, sources: sheetSource, hasFetched: true, loading: false, error: null }
+          : live;
+    return { studio, data, jobs: merged.filter(jobMatches) };
+  }), [activeStudios, cards, jobMatches, sheetGroups.jobsByStudio, mergedJobsByStudio, sheetState]);
+  const hasFilters = Boolean(jobSearch || regions.length || countries.length || levels.length);
+  const visibleResults = studioResults.filter(item => {
+    // During refresh, do not reappear just because loading started when a
+    // title, region or level filter would otherwise hide this studio.
+    if (hasFilters && !item.jobs.length) return false;
+    if (hideErrored && item.data?.error && !item.jobs.length) return false;
+    if (item.jobs.length) return true;
+    return !hideEmpty || !item.data?.hasFetched || Boolean(item.data?.error);
+  });
+  const completedCount = activeStudios.filter(studio =>
+    studio.sheetOnly ? sheetState.hasFetched : cards[studio.id]?.hasFetched).length;
+  const errorCount = activeStudios.filter(studio =>
+    !studio.sheetOnly && (cards[studio.id]?.error || cards[studio.id]?.warnings?.length)).length +
     (showSheet && sheetState.error ? 1 : 0);
   const proxyCount = activeStudios.filter(studio => (cards[studio.id]?.sources || []).some(source => source.proxied && !String(source.source).includes('Jina Reader'))).length;
   const readerCount = activeStudios.filter(studio => (cards[studio.id]?.sources || []).some(source => String(source.source).includes('Jina Reader'))).length;
-  const loadingCount = activeStudios.filter(studio => cards[studio.id]?.loading || !cards[studio.id]?.hasFetched).length +
+  const loadingCount = activeStudios.filter(studio =>
+    !studio.sheetOnly && (cards[studio.id]?.loading || !cards[studio.id]?.hasFetched)).length +
     (showSheet && (!sheetState.hasFetched || sheetState.loading) ? 1 : 0);
-  const hasFilters = Boolean(jobSearch || regions.length || countries.length || levels.length);
   const shownSidebar = sortedStudios.filter(studio => studio.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(studioSearch.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()));
   const activeCount = regions.length + countries.length + levels.length;
 
@@ -488,25 +513,28 @@ export default function App() {
           <div className="brand-type"><div className="brand-name">JobSearcher</div><div className="brand-caption">Studio career browser</div></div>
           <button type="button" className="icon-button mobile-close" onClick={() => setSidebarOpen(false)} aria-label="Close studio navigation"><Icon name="x"/></button>
         </div>
-        <div className="sidebar-heading"><h2>Studios</h2><span className="muted small">{activeStudios.length}/{studios.length}</span></div>
+        <div className="sidebar-heading"><h2>Studios</h2><span className="muted small">{activeStudios.length}/{sortedStudios.length}</span></div>
         <label className="search-field sidebar-search"><Icon name="search"/><input type="search" value={studioSearch} onChange={event => setStudioSearch(event.target.value)} placeholder="Search studios…" aria-label="Search studios"/></label>
         <div className="sidebar-options">
           <button type="button" className="text-button" onClick={() => setDisabled([])}>Enable all</button>
-          <button type="button" className="text-button" onClick={() => setDisabled(studios.map(studio => studio.id))}>Disable all</button>
+          <button type="button" className="text-button" onClick={() => setDisabled(sortedStudios.map(studio => studio.id))}>Disable all</button>
         </div>
         <div className="sidebar-studios" role="list" aria-label="Studios; drag to reorder or use move buttons">
           {shownSidebar.map(studio => {
             const enabled = !disabledIds.has(studio.id);
             const index = sortedStudios.findIndex(item => item.id === studio.id);
-            const amount = (cards[studio.id]?.jobs || []).filter(jobMatches).length;
+            const result = studioResults.find(item => item.studio.id === studio.id);
+            const amount = result?.jobs.length || 0;
+            const studioData = result?.data;
             return <div key={studio.id} role="listitem" className={'sidebar-studio' + (!enabled ? ' disabled' : '') + (draggedStudio === studio.id ? ' dragging' : '')}
               draggable={!studioSearch} onDragStart={event => { setDraggedStudio(studio.id); event.dataTransfer.setData('text/plain', studio.id); event.dataTransfer.effectAllowed = 'move'; }}
               onDragEnd={() => setDraggedStudio(null)} onDragOver={event => { if (!studioSearch) event.preventDefault(); }}
               onDrop={event => { event.preventDefault(); reorder(draggedStudio || event.dataTransfer.getData('text/plain'), studio.id); setDraggedStudio(null); }}>
               <Icon name="drag" className="drag-handle" />
               <input type="checkbox" checked={enabled} aria-label={'Enable ' + studio.name} onChange={() => toggleList(setDisabled, studio.id)} />
+              {studio.sheetOnly && studio.logo_url && <img src={studio.logo_url} alt="" width="18" height="18" loading="lazy" style={{width: 18, height: 18, borderRadius: 4, objectFit: 'contain', flexShrink: 0}}/>}
               <button className="sidebar-studio-name" type="button" onClick={() => enabled ? jumpToStudio(studio.id) : toggleList(setDisabled, studio.id)} title={studio.name}>{studio.name}</button>
-              {enabled && cards[studio.id]?.hasFetched && <span className={'sidebar-job-count' + (cards[studio.id]?.error ? ' error' : '')}>{cards[studio.id]?.error ? '!' : amount}</span>}
+              {enabled && studioData?.hasFetched && <span className={'sidebar-job-count' + (studioData?.error ? ' error' : '')}>{studioData?.error && !amount ? '!' : amount}</span>}
               {!studioSearch && <div className="sort-controls">
                 <button type="button" className="mini-action" disabled={index === 0} onClick={() => moveStudio(studio.id, -1)} aria-label={'Move ' + studio.name + ' up'}><Icon name="arrow-up"/></button>
                 <button type="button" className="mini-action" disabled={index === sortedStudios.length - 1} onClick={() => moveStudio(studio.id, 1)} aria-label={'Move ' + studio.name + ' down'}><Icon name="arrow-down"/></button>
@@ -529,6 +557,11 @@ export default function App() {
                 onClick={() => setShowSheet(value => !value)}><Icon name="document"/><span className="hide-on-narrow">Community Sheet</span></button>
               <button type="button" className={'toolbar-button' + (hideEmpty ? ' is-selected' : '')} onClick={() => setHideEmpty(value => !value)}
                 aria-pressed={hideEmpty} title={hideEmpty ? 'Showing only studios with matching positions or errors' : 'Show all enabled studios'}><Icon name="eye-off"/><span className="hide-on-narrow">Hide empty</span></button>
+              <button type="button" className={'toolbar-button' + (hideErrored ? ' is-selected' : '')}
+                onClick={() => setHideErrored(value => !value)} aria-pressed={hideErrored}
+                title="Hide studios whose requests failed and have no matching positions">
+                <Icon name="warning"/><span className="hide-on-narrow">Hide errored</span>
+              </button>
               <div className="menu-anchor">
                 <button type="button" className={'toolbar-button' + (autoRefresh ? ' is-selected' : '')}
                   onClick={() => setOpenMenu(openMenu === 'auto' ? '' : 'auto')}
@@ -581,14 +614,14 @@ export default function App() {
           {configError && <div className="config-error" role="alert"><Icon name="warning"/><div><strong>{configError.startsWith('Latest GitHub configuration unavailable') ? 'Using bundled studio configuration' : 'Configuration update failed'}</strong><p>{configError}</p></div><button type="button" onClick={() => void refreshAll(true)}>Try again</button></div>}
           {visibleResults.length ? (
             <div className="studio-grid" aria-label="Open positions by studio">
-              {visibleResults.map(({ studio, data, jobs }) => <StudioCard key={studio.id} studio={studio} data={data} jobs={jobs} onRefresh={studio.id === SHEET_STUDIO.id ? refreshSheet : refreshOne}
+              {visibleResults.map(({ studio, data, jobs }) => <StudioCard key={studio.id} studio={studio} data={data} jobs={jobs} onRefresh={studio.sheetOnly ? refreshSheet : refreshOne}
                 expanded={expanded.includes(studio.id)} onExpand={() => toggleList(setExpanded, studio.id)}/>)}
             </div>
           ) : <div className="empty-state">
             <div className="empty-illustration"><Icon name="search"/></div>
             <h2>{loadingConfig ? 'Loading studios…' : !activeStudios.length ? 'No studios enabled' : loadingCount ? 'Checking open positions…' : 'No matching positions'}</h2>
             <p>{!activeStudios.length ? 'Enable one or more studios in the sidebar to browse their jobs.' : loadingCount ? 'Job listings are fetched directly from each studio on this device.' : 'Try adjusting your search, location, seniority or visibility options.'}</p>
-            <button type="button" className="secondary-button" onClick={() => { if (!activeStudios.length) setDisabled([]); else if (hasFilters) clearFilters(); else setHideEmpty(false); }}>
+            <button type="button" className="secondary-button" onClick={() => { if (!activeStudios.length) setDisabled([]); else if (hasFilters) clearFilters(); else { setHideEmpty(false); setHideErrored(false); } }}>
               {!activeStudios.length ? 'Enable all studios' : hasFilters ? 'Clear filters' : 'Show all studios'}
             </button>
           </div>}
