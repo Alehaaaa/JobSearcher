@@ -1,6 +1,8 @@
-# JobUI
+# JobSearcher — Python/Maya application
 
-JobUI is a job application tracker and manager designed to help VFX artists find and organize job openings from various studios.
+This is the Python/PySide job browser on the **`main` branch of `Alehaaaa/JobSearcher`**. The Python import package retains its original `JobUI` name for backwards compatibility with existing Maya scenes and scripts.
+
+JobSearcher helps VFX artists find and organize job openings from different studios. For the browser version, see [`web-app`](https://github.com/Alehaaaa/JobSearcher/tree/web-app); for the published website, see https://alehaaaa.github.io/JobSearcher/. The Swift/Xcode app lives on [`mac`](https://github.com/Alehaaaa/JobSearcher/tree/mac).
 
 ## Core Component (PySide)
 
@@ -21,7 +23,7 @@ The main codebase is located in the root directory.
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/Alehaaaa/JobUI.git
+    git clone --branch main https://github.com/Alehaaaa/JobSearcher.git JobUI
     cd JobUI
     ```
 
