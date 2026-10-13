@@ -1,5 +1,6 @@
 // Group a publicly readable community sheet into real studio cards.
-// Existing studios keep their configured branding; new ones use Google S2 favicons.
+// Do not derive company branding from its APPLICATION link (LinkedIn, boards,
+// agencies, and generic submission hosts are often unrelated to the employer).
 const fold = value => String(value ?? '').normalize('NFKD')
   .replace(/[\u0300-\u036f]/g, '').toLowerCase()
   .replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim()
@@ -50,15 +51,6 @@ export function matchStudioName(name, studios) {
     candidates[0].score - candidates[1].score >= .2) ? candidates[0].studio : null;
 }
 
-function iconDomain(link) {
-  try {
-    const parsed = new URL(link);
-    if (parsed.protocol === 'mailto:') return parsed.pathname.split('@').pop();
-    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return parsed.hostname;
-  } catch { /* Invalid source link */ }
-  return '';
-}
-
 function uniqueId(name, used) {
   const root = 'sheet-' + (canonical(name).replace(/\s+/g, '-') || 'unknown');
   let id = root;
@@ -70,28 +62,29 @@ function uniqueId(name, used) {
 export function groupSheetStudios(configured, jobs) {
   const added = [];
   const byName = new Map();
+  const resolvedNames = new Map();
   const jobsByStudio = new Map();
   const used = new Set(configured.map(studio => studio.id));
   for (const job of jobs) {
     if (!job?.studioName || !job.title || !job.link) continue;
-    let studio = matchStudioName(job.studioName, configured);
+    const normalizedName = canonical(job.studioName);
+    if (!resolvedNames.has(normalizedName)) {
+      resolvedNames.set(normalizedName, matchStudioName(job.studioName, configured));
+    }
+    let studio = resolvedNames.get(normalizedName);
     if (!studio) {
-      const name = canonical(job.studioName);
-      studio = byName.get(name);
+      studio = byName.get(normalizedName);
       if (!studio) {
-        const domain = iconDomain(job.link);
         studio = {
           id: uniqueId(job.studioName, used),
           name: job.studioName.trim(),
-          website: /^https?:/i.test(job.link) ? job.link :
-            'https://docs.google.com/spreadsheets/d/1eR2oAXOuflr8CZeGoz3JTrsgNj3KuefbdXJOmNtjEVM/edit?gid=0',
-          careers_url: job.link,
-          logo_url: domain ? 'https://www.google.com/s2/favicons?domain=' +
-            encodeURIComponent(domain) + '&sz=128' : '',
+          website: job.sheetUrl || 'https://docs.google.com/spreadsheets/d/1eR2oAXOuflr8CZeGoz3JTrsgNj3KuefbdXJOmNtjEVM/edit?gid=0',
+          careers_url: job.sheetUrl || job.link,
+          logo_url: '',
           scraping: { strategy: 'static' },
           sheetOnly: true,
         };
-        byName.set(name, studio);
+        byName.set(normalizedName, studio);
         added.push(studio);
       }
     }

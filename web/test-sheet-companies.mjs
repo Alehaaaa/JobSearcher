@@ -30,7 +30,7 @@ test('known company jobs attach to their original studio, not a sheet tile', () 
   assert.ok(!groups.studios.some(studio => studio.id === 'community-sheet'));
 });
 
-test('new companies become independently addressable studio cards with Google favicon images', () => {
+test('new companies have independent cards without borrowing job-board logos', () => {
   const jobs = [
     sheetJob('Blue Sky Creative', 'FX TD', 'https://blueskycreative.com/jobs/1'),
     sheetJob('Blue Sky Creative', 'Animation Lead', 'https://blueskycreative.com/jobs/2'),
@@ -43,8 +43,8 @@ test('new companies become independently addressable studio cards with Google fa
   assert.equal(blueSky.id, 'sheet-blue-sky-creative');
   assert.equal(grouped.jobsByStudio.get(blueSky.id).length, 2);
   assert.equal(grouped.jobsByStudio.get(copper.id).length, 1);
-  assert.equal(blueSky.logo_url, 'https://www.google.com/s2/favicons?domain=blueskycreative.com&sz=128');
-  assert.equal(copper.logo_url, 'https://www.google.com/s2/favicons?domain=copperhouse.com&sz=128');
+  assert.equal(blueSky.logo_url, '');
+  assert.equal(copper.logo_url, '');
   assert.equal(blueSky.sheetOnly, true);
   assert.equal(blueSky.scraping.strategy, 'static');
 });
@@ -75,12 +75,21 @@ test('new community rows retain location and explicitly labeled seniority', () =
   assert.equal(merged[0].experienceLevel, 'Junior');
 });
 
-test('email-only new companies still receive a favicon and safe sheet-linked logo', () => {
+test('email-only new companies use neutral identity and original community sheet link', () => {
   const groups = groupSheetStudios([], [
     sheetJob('Unknown Team', 'Animator', 'mailto:jobs@unknownteam.com'),
   ]);
   assert.equal(groups.studios.length, 1);
-  assert.equal(groups.studios[0].logo_url,
-    'https://www.google.com/s2/favicons?domain=unknownteam.com&sz=128');
+  assert.equal(groups.studios[0].logo_url, '');
   assert.match(groups.studios[0].website, /^https:\/\/docs\.google\.com\/spreadsheets\//);
+});
+
+test('application on LinkedIn or a generic job board never supplies a false studio logo', () => {
+  const entries = [
+    sheetJob('Moon Animation', 'Artist', 'https://www.linkedin.com/jobs/view/123456'),
+    sheetJob('Orbit FX', 'Producer', 'https://apply.workable.com/agency/j/555/'),
+  ];
+  const grouped = groupSheetStudios(configured, entries);
+  assert.ok(grouped.studios.filter(studio => studio.sheetOnly).every(studio => !studio.logo_url));
+  assert.ok(grouped.studios.filter(studio => studio.sheetOnly).every(studio => studio.website.includes('docs.google.com')));
 });

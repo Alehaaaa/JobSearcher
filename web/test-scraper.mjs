@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { JSDOM } from "jsdom";
-import { extractJSON, fetchJobs, loadConfig } from "./scraper.js";
+import { extractJSON, fetchJobs, loadConfig, normalizeStudioJobLink } from "./scraper.js";
 
 const nativeFetch = globalThis.fetch;
 const studios = JSON.parse(await readFile(new URL("./data/studios.json", import.meta.url), "utf8"));

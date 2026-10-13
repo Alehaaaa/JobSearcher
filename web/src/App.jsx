@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchJobs, loadConfig, normalizeStudioJobLink } from '../scraper.js';
-import { fetchPublicSheet } from '../sheet-source.js';
+import { fetchPublicSheet, parseSheetReference, PUBLIC_SHEET_URL } from '../sheet-source.js';
 import { groupSheetStudios, mergeStudioJobs } from '../sheet-companies.js';
+import { displayLevel, displayLocation, relativeJobTime } from './job-presentation.js';
+import { whenNearViewport } from './viewport.js';
+import { resolveStudioBrand } from './studio-logo.js';
 import {
   analyzeJob, countLevels, countLocations, createSearchMatcher,
   LEVELS, matchesLevel, matchesLocation, REGIONS,
@@ -13,6 +16,8 @@ const AUTO_OPTIONS = [
   [60, '1 minute', '1m'], [300, '5 minutes', '5m'],
   [600, '10 minutes', '10m'], [3600, '1 hour', '1h'],
 ];
+const DEFAULT_SHEET_LISTS = [{ url: PUBLIC_SHEET_URL, name: 'Community Jobs', enabled: true }];
+const sheetKey = reference => reference.key || reference.id + ':' + (reference.gid || reference.sheet || '0');
 
 function readStored(key, fallback) {
   try {
@@ -162,36 +167,39 @@ function Dropdown({ title, icon, count, open, onToggle, onClear, children, class
   );
 }
 
-function JobAge({ firstSeen }) {
-  if (!firstSeen) return null;
-  const age = Math.max(0, Date.now() - firstSeen);
-  const hours = Math.floor(age / 3600000);
-  const label = hours < 1 ? 'New' : hours < 24 ? hours + 'h ago'
-    : age < 7 * 86400000 ? Math.floor(age / 86400000) + 'd ago'
-    : Math.floor(age / (7 * 86400000)) + 'w ago';
-  const ageClass = age < 86400000 ? 'recent' : age < 5 * 86400000 ? 'fresh' : age < 8 * 86400000 ? 'older' : '';
-  return <time className={'job-age ' + ageClass} dateTime={new Date(firstSeen).toISOString()}
-    title={'First seen ' + new Date(firstSeen).toLocaleString()}>{label}</time>;
+function JobAge({ job }) {
+  const originalDate = job.postedOn || job.firstSeen;
+  const time = typeof originalDate === 'number' ? originalDate : Date.parse(String(originalDate || ''));
+  if (!Number.isFinite(time) || time <= 0) return <span className="job-age">—</span>;
+  const sourceLabel = job.postedOn ? 'Listed' : 'First seen';
+  return <time className="job-age" dateTime={new Date(time).toISOString()}
+    title={sourceLabel + ' ' + new Date(time).toLocaleString()}>{relativeJobTime(time)}</time>;
 }
 
-function StudioCard({ studio, data, jobs, onRefresh, expanded, onExpand }) {
+function StudioCard({ studio, brand, data, jobs, onRefresh, expanded, onExpand }) {
   const career = careersUrl(studio);
-  const logo = validUrl(studio.logo_url);
+  const logo = brand?.logoUrl || '';
   const [logoFailed, setLogoFailed] = useState(false);
+  useEffect(() => { setLogoFailed(false); }, [logo]);
+  const [nearViewport, setNearViewport] = useState(false);
+  const cardRef = useRef(null);
+  useEffect(() => {
+    return whenNearViewport(cardRef.current, () => setNearViewport(true));
+  }, []);
   const limit = expanded ? jobs.length : 35;
   const sources = [...new Map((data?.sources || [])
     .map(item => sourceIndicator(item.source, item.proxied))
     .filter(Boolean)
     .map(item => [item.label, item])).values()];
   return (
-    <section className={'studio-card' + (data?.error ? ' has-error' : '')}
+    <section ref={cardRef} className={'studio-card' + (data?.error ? ' has-error' : '')}
       id={'studio-' + studio.id} aria-label={studio.name}>
       <div className="card-header">
         <div className="studio-brand">
           {career ? (
             <a href={career} target="_blank" rel="noopener noreferrer" className="studio-logo-link" title={'Open ' + studio.name + ' careers'}>
-              {logo && !logoFailed ? <img src={logo} alt={studio.name} className="studio-logo" loading="lazy" onError={() => setLogoFailed(true)} />
-                : <strong className="logo-fallback">{studio.name}</strong>}
+              {nearViewport && logo && !logoFailed ? <img src={logo} alt={studio.name} className="studio-logo" loading="lazy" decoding="async" onError={() => setLogoFailed(true)} />
+                : <span className="studio-brand-fallback"><span className="studio-brand-initials">{brand?.initials || '?'}</span><strong className="logo-fallback">{studio.name}</strong></span>}
             </a>
           ) : <strong className="logo-fallback">{studio.name}</strong>}
         </div>
@@ -203,6 +211,7 @@ function StudioCard({ studio, data, jobs, onRefresh, expanded, onExpand }) {
         </div>
       </div>
       <div className="card-body">
+        {!nearViewport ? null : <>
         {data?.error && <div className="card-error" role="alert"><Icon name="warning"/><div><strong>{data.jobs?.length ? 'Refresh failed; showing previous results' : 'Could not load positions'}</strong><p>{data.error}</p></div></div>}
         {!data?.error && Boolean(data?.warnings?.length) && <div className="card-error" role="status"><Icon name="warning"/><div><strong>Some careers endpoints could not be reached</strong>{data.warnings.map((warning, index) => <p key={index}>{warning}</p>)}</div></div>}
         {(!data || (data.loading && !data.hasFetched)) ? (
@@ -218,12 +227,11 @@ function StudioCard({ studio, data, jobs, onRefresh, expanded, onExpand }) {
             {jobs.slice(0, limit).map(job => (
               <div className="job-item" key={job.link + '|' + job.title + '|' + job.location}>
                 <a className="job-link" href={job.link} target="_blank" rel="noopener noreferrer" title={'View ' + job.title}>
-                  <span className="job-title">{job.title}{sourceIndicator(job.source, job.proxied) && <span className="source-inline" title={sourceIndicator(job.source, job.proxied).details}>via {sourceIndicator(job.source, job.proxied).label}</span>}</span>
+                  <span className="job-title">{job.title}</span>
                   <span className="job-meta">
-                    {job.studioName && <span className="job-location" title={job.studioName}>{job.studioName}</span>}
-                    {job.location && <span className="job-location" title={job.location}><Icon name="pin"/>{job.location}</span>}
-                    {job.experienceLevel && <span className="job-location" title={'Experience level: ' + job.experienceLevel}>{job.experienceLevel}</span>}
-                    {job.postedOn ? <time className="job-age" dateTime={job.postedOn} title={'Listed ' + new Date(job.postedOn).toLocaleDateString()}>Listed {new Date(job.postedOn).toLocaleDateString()}</time> : <JobAge firstSeen={job.firstSeen}/>}
+                    <span className="job-location" title={displayLocation(job)}><Icon name="pin"/>{displayLocation(job)}</span>
+                    <span className="job-level" title={'Level: ' + displayLevel(job)}>{displayLevel(job)}</span>
+                    <JobAge job={job}/>
                   </span>
                   <Icon name="external" className="job-external"/>
                 </a>
@@ -233,7 +241,7 @@ function StudioCard({ studio, data, jobs, onRefresh, expanded, onExpand }) {
             {!expanded && jobs.length > limit && <button type="button" className="show-more" onClick={onExpand}>Show {jobs.length - limit} more positions</button>}
             {expanded && jobs.length > 35 && <button type="button" className="show-more" onClick={onExpand}>Show fewer</button>}
           </div>
-        )}
+        )}</>}
       </div>
       {(data?.lastAttemptAt || data?.updatedAt) && <div className="card-footer" title={(data?.error ? 'Last failed attempt ' : 'Last checked ') + new Date(data?.lastAttemptAt || data.updatedAt).toLocaleString()}>{data?.error ? 'Refresh failed ' : 'Checked '}{new Date(data?.lastAttemptAt || data.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
     </section>
@@ -259,7 +267,11 @@ export default function App() {
   const [hideErrored, setHideErrored] = usePreference('hideErrored', false);
   const [autoRefresh, setAutoRefresh] = usePreference('autoRefreshSeconds', 0);
   const [showSheet, setShowSheet] = usePreference('showCommunitySheet', false);
-  const [sheetState, setSheetState] = useState({ jobs: [], loading: false, hasFetched: false, error: null });
+  const [sheetLists, setSheetLists] = usePreference('communitySheetLists', DEFAULT_SHEET_LISTS);
+  const [sheetResults, setSheetResults] = useState({});
+  const [newSheetURL, setNewSheetURL] = useState('');
+  const [newSheetName, setNewSheetName] = useState('');
+  const [sheetFormError, setSheetFormError] = useState('');
   const [openMenu, setOpenMenu] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expanded, setExpanded] = useState([]);
@@ -273,7 +285,27 @@ export default function App() {
   const scheduled = useRef(new Set());
   const allRefreshPromise = useRef(null);
   const refreshAllRef = useRef(null);
-  const sheetInFlight = useRef(null);
+  const sheetInFlight = useRef(new Map());
+
+  const parsedSheets = useMemo(() => (Array.isArray(sheetLists) ? sheetLists : [])
+    .flatMap(entry => {
+      try {
+        const reference = parseSheetReference(entry);
+        return [{ ...reference, key: sheetKey(reference), name: entry.name || reference.name || 'Untitled list', enabled: entry.enabled !== false }];
+      } catch { return []; }
+    }), [sheetLists]);
+  const enabledSheets = useMemo(() => parsedSheets.filter(entry => entry.enabled), [parsedSheets]);
+  const sheetState = useMemo(() => {
+    const entries = enabledSheets.map(sheet => sheetResults[sheet.key]);
+    const failures = entries.filter(entry => entry?.error);
+    return {
+      jobs: enabledSheets.flatMap(sheet => sheetResults[sheet.key]?.jobs || []),
+      loading: entries.some(entry => entry?.loading),
+      hasFetched: enabledSheets.every(sheet => sheetResults[sheet.key]?.hasFetched),
+      error: failures.length ? failures.length + ' community list(s) could not be loaded' : null,
+      updatedAt: Math.max(0, ...entries.map(entry => entry?.updatedAt || 0)),
+    };
+  }, [enabledSheets, sheetResults]);
 
   // Split public-sheet companies into the left sidebar and merge recognizable
   // names into existing studio cards, without creating a central sheet tile.
@@ -282,6 +314,8 @@ export default function App() {
     : { studios, jobsByStudio: new Map() }, [studios, showSheet, sheetState.jobs]);
   const sortedStudios = useMemo(() => sortStudios(sheetGroups.studios, order),
     [sheetGroups.studios, order]);
+  const brandsById = useMemo(() => new Map(sortedStudios.map(studio =>
+    [studio.id, resolveStudioBrand(studio, studios)])), [sortedStudios, studios]);
   const disabledIds = useMemo(() => new Set(disabled), [disabled]);
   const activeStudios = useMemo(() => sortedStudios.filter(studio => !disabledIds.has(studio.id)), [sortedStudios, disabledIds]);
   const matcher = useMemo(() => createSearchMatcher(jobSearch), [jobSearch]);
@@ -316,25 +350,32 @@ export default function App() {
     return task;
   }, []);
 
-  const refreshSheet = useCallback(() => {
-    if (sheetInFlight.current) return sheetInFlight.current;
+  const refreshSingleSheet = useCallback(sheet => {
+    if (sheetInFlight.current.has(sheet.key)) return sheetInFlight.current.get(sheet.key);
     const task = (async () => {
-      setSheetState(previous => ({ ...previous, loading: true }));
+      setSheetResults(previous => ({ ...previous,
+        [sheet.key]: { ...previous[sheet.key], loading: true } }));
       try {
-        // The sheet contains many studios, not one synthetic employer.
-        const jobs = await fetchPublicSheet();
-        setSheetState({ jobs, loading: false, hasFetched: true, error: null,
-          updatedAt: Date.now(), lastAttemptAt: Date.now(),
-          sources: [{ source: 'Public Google Sheet', proxied: false }] });
+        const jobs = (await fetchPublicSheet(sheet)).map(job => ({
+          ...job, sheetName: sheet.name, sheetURL: sheet.url,
+        }));
+        setSheetResults(previous => ({ ...previous, [sheet.key]: {
+          jobs, loading: false, hasFetched: true, error: null, updatedAt: Date.now(),
+        } }));
       } catch (error) {
-        setSheetState(previous => ({ ...previous, loading: false, hasFetched: true,
-          error: errorText(error), lastAttemptAt: Date.now() }));
+        setSheetResults(previous => ({ ...previous, [sheet.key]: {
+          ...previous[sheet.key], loading: false, hasFetched: true,
+          error: errorText(error), lastAttemptAt: Date.now(),
+        } }));
       }
     })();
-    sheetInFlight.current = task;
-    void task.finally(() => { if (sheetInFlight.current === task) sheetInFlight.current = null; });
+    sheetInFlight.current.set(sheet.key, task);
+    void task.finally(() => { if (sheetInFlight.current.get(sheet.key) === task) sheetInFlight.current.delete(sheet.key); });
     return task;
   }, []);
+  const refreshSheet = useCallback(async () => {
+    await batchFetch(enabledSheets, refreshSingleSheet, 2);
+  }, [enabledSheets, refreshSingleSheet]);
 
   useEffect(() => {
     let cancelled = false;
@@ -370,8 +411,13 @@ export default function App() {
   }, [activeStudios, refreshOne]);
 
   useEffect(() => {
-    if (showSheet && !sheetState.hasFetched && !sheetState.loading) void refreshSheet();
-  }, [showSheet, sheetState.hasFetched, sheetState.loading, refreshSheet]);
+    if (!showSheet) return;
+    const pending = enabledSheets.filter(sheet => {
+      const result = sheetResults[sheet.key];
+      return !result?.hasFetched && !result?.loading && !sheetInFlight.current.has(sheet.key);
+    });
+    if (pending.length) void batchFetch(pending, refreshSingleSheet, 2);
+  }, [showSheet, enabledSheets, sheetResults, refreshSingleSheet]);
 
   const refreshAll = useCallback(async (reloadConfig = true) => {
     if (allRefreshPromise.current) return allRefreshPromise.current;
@@ -440,7 +486,7 @@ export default function App() {
     const sheetSource = sheetJobs.length ? [{ source: 'Public Google Sheet', proxied: false }] : [];
     const live = cards[studio.id];
     const data = studio.sheetOnly
-      ? { ...sheetState, jobs: merged, sources: sheetSource }
+      ? { ...sheetState, error: merged.length ? null : sheetState.error, jobs: merged, sources: sheetSource }
       : live
         ? { ...live, jobs: merged, sources: [...(live.sources || []), ...sheetSource] }
         : sheetJobs.length
@@ -448,6 +494,8 @@ export default function App() {
           : live;
     return { studio, data, jobs: merged.filter(jobMatches) };
   }), [activeStudios, cards, jobMatches, sheetGroups.jobsByStudio, mergedJobsByStudio, sheetState]);
+  const studioResultLookup = useMemo(() => new Map(studioResults.map(item =>
+    [item.studio.id, item])), [studioResults]);
   const hasFilters = Boolean(jobSearch || regions.length || countries.length || levels.length);
   const visibleResults = studioResults.filter(item => {
     // During refresh, do not reappear just because loading started when a
@@ -471,6 +519,44 @@ export default function App() {
 
   function toggleList(setter, value) {
     setter(old => old.includes(value) ? old.filter(item => item !== value) : [...old, value]);
+  }
+  function addCommunitySheet(event) {
+    event.preventDefault();
+    try {
+      const reference = parseSheetReference(newSheetURL);
+      const key = sheetKey(reference);
+      if (parsedSheets.some(sheet => sheet.key === key)) {
+        throw new Error('This spreadsheet tab is already saved');
+      }
+      const name = newSheetName.trim().slice(0, 100) || 'Google Sheet ' + (parsedSheets.length + 1);
+      setSheetLists(current => [...current, { url: reference.csvUrl, name, enabled: true }]);
+      setShowSheet(true);
+      setNewSheetURL('');
+      setNewSheetName('');
+      setSheetFormError('');
+    } catch (error) {
+      setSheetFormError(errorText(error));
+    }
+  }
+  function toggleCommunitySheet(key) {
+    setSheetLists(current => current.map(item => {
+      try {
+        return sheetKey(parseSheetReference(item)) === key ?
+          { ...item, enabled: item.enabled === false } : item;
+      } catch { return item; }
+    }));
+    setShowSheet(true);
+  }
+  function removeCommunitySheet(key) {
+    setSheetLists(current => current.filter(item => {
+      try { return sheetKey(parseSheetReference(item)) !== key; }
+      catch { return true; }
+    }));
+    setSheetResults(current => {
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
   }
   function clearFilters() { setJobSearch(''); setRegions([]); setCountries([]); setLevels([]); }
   function reorder(sourceId, destinationId) {
@@ -521,7 +607,7 @@ export default function App() {
           {shownSidebar.map(studio => {
             const enabled = !disabledIds.has(studio.id);
             const index = sortedStudios.findIndex(item => item.id === studio.id);
-            const result = studioResults.find(item => item.studio.id === studio.id);
+            const result = studioResultLookup.get(studio.id);
             const amount = result?.jobs.length || 0;
             const studioData = result?.data;
             return <div key={studio.id} role="listitem" className={'sidebar-studio' + (!enabled ? ' disabled' : '') + (draggedStudio === studio.id ? ' dragging' : '')}
@@ -530,7 +616,7 @@ export default function App() {
               onDrop={event => { event.preventDefault(); reorder(draggedStudio || event.dataTransfer.getData('text/plain'), studio.id); setDraggedStudio(null); }}>
               <Icon name="drag" className="drag-handle" />
               <input type="checkbox" checked={enabled} aria-label={'Enable ' + studio.name} onChange={() => toggleList(setDisabled, studio.id)} />
-              {studio.sheetOnly && studio.logo_url && <img src={studio.logo_url} alt="" width="18" height="18" loading="lazy" style={{width: 18, height: 18, borderRadius: 4, objectFit: 'contain', flexShrink: 0}}/>}
+              {studio.sheetOnly && <span className="sidebar-company-initials" aria-hidden="true">{brandsById.get(studio.id)?.initials || '?'}</span>}
               <button className="sidebar-studio-name" type="button" onClick={() => enabled ? jumpToStudio(studio.id) : toggleList(setDisabled, studio.id)} title={studio.name}>{studio.name}</button>
               {enabled && studioData?.hasFetched && <span className={'sidebar-job-count' + (studioData?.error ? ' error' : '')}>{studioData?.error && !amount ? '!' : amount}</span>}
               {!studioSearch && <div className="sort-controls">
@@ -550,9 +636,56 @@ export default function App() {
             <button type="button" className="icon-button mobile-menu" onClick={() => setSidebarOpen(true)} aria-label="Open studio navigation"><Icon name="menu"/></button>
             <div className="page-identity"><h1>Job Browser</h1><p>Animation · VFX · Games</p></div>
             <div className="toolbar-actions">
-              <button type="button" className={'toolbar-button' + (showSheet ? ' is-selected' : '')}
-                aria-pressed={showSheet} title="Load community-contributed jobs anonymously from the public Google Sheet"
-                onClick={() => setShowSheet(value => !value)}><Icon name="document"/><span className="hide-on-narrow">Community Sheet</span></button>
+              <div className="menu-anchor sheet-menu-anchor">
+                <div className="sheet-split-button">
+                  <button type="button" className={'toolbar-button sheet-toggle' + (showSheet ? ' is-selected' : '')}
+                    aria-pressed={showSheet} title="Show or hide your saved community job lists"
+                    onClick={() => setShowSheet(value => !value)}>
+                    <Icon name="document"/><span className="hide-on-narrow">Community Sheets</span>
+                    {enabledSheets.length > 0 && <span className="sheet-count">{enabledSheets.length}</span>}
+                  </button>
+                  <button type="button" className={'toolbar-button sheet-menu-trigger' + (openMenu === 'sheets' ? ' is-selected' : '')}
+                    title="Manage saved community job lists" aria-label="Manage community sheets"
+                    aria-haspopup="true" aria-expanded={openMenu === 'sheets'} aria-controls="community-sheets-menu"
+                    onClick={() => setOpenMenu(openMenu === 'sheets' ? '' : 'sheets')}><Icon name="chevron"/></button>
+                </div>
+                {openMenu === 'sheets' && <div className="popover sheet-popover" id="community-sheets-menu">
+                  <div className="popover-header">
+                    <strong>Community job lists</strong>
+                    <span className="sheet-menu-hint">Saved on this device</span>
+                  </div>
+                  <p className="sheet-menu-description">Add public Google Sheets. Listings are fetched and analyzed locally in your browser.</p>
+                  <div className="sheet-list-items">
+                    {parsedSheets.map(sheet => <div className="sheet-list-row" key={sheet.key}>
+                      <input type="checkbox" checked={sheet.enabled} aria-label={'Enable ' + sheet.name}
+                        onChange={() => toggleCommunitySheet(sheet.key)}/>
+                      <div className="sheet-list-details">
+                        <a href={sheet.gid ? sheet.url : sheet.csvUrl} target="_blank" rel="noopener noreferrer" title={'Open ' + sheet.name}>{sheet.name}<Icon name="external"/></a>
+                        <small>{sheetResults[sheet.key]?.loading ? 'Loading…' :
+                          sheetResults[sheet.key]?.error ? 'Could not load · use refresh' :
+                          sheetResults[sheet.key]?.hasFetched ? (sheetResults[sheet.key]?.jobs?.length || 0) + ' jobs' : 'Not loaded'}</small>
+                      </div>
+                      <button className="mini-action" type="button" title={'Refresh ' + sheet.name}
+                        onClick={() => void refreshSingleSheet(sheet)} aria-label={'Refresh ' + sheet.name}>
+                        <Icon name="refresh"/></button>
+                      <button className="mini-action sheet-remove" type="button" title={'Remove ' + sheet.name}
+                        onClick={() => removeCommunitySheet(sheet.key)} aria-label={'Remove ' + sheet.name}>
+                        <Icon name="x"/></button>
+                    </div>)}
+                    {!parsedSheets.length && <p className="sheet-menu-description">No saved lists. Add a public Google Sheet below.</p>}
+                  </div>
+                  <form className="sheet-add-form" onSubmit={addCommunitySheet}>
+                    <label>List name <input type="text" value={newSheetName} maxLength={100}
+                      onChange={event => setNewSheetName(event.target.value)}
+                      placeholder="My animation jobs list"/></label>
+                    <label>Google Sheets link <input type="text" required value={newSheetURL}
+                      onChange={event => { setNewSheetURL(event.target.value); setSheetFormError(''); }}
+                      placeholder="https://docs.google.com/spreadsheets/d/…"/></label>
+                    {sheetFormError && <span className="sheet-form-error" role="alert">{sheetFormError}</span>}
+                    <button className="secondary-button" type="submit">Add list</button>
+                  </form>
+                </div>}
+              </div>
               <button type="button" className={'toolbar-button' + (hideEmpty ? ' is-selected' : '')} onClick={() => setHideEmpty(value => !value)}
                 aria-pressed={hideEmpty} title={hideEmpty ? 'Showing only studios with matching positions or errors' : 'Show all enabled studios'}><Icon name="eye-off"/><span className="hide-on-narrow">Hide empty</span></button>
               <button type="button" className={'toolbar-button' + (hideErrored ? ' is-selected' : '')}
@@ -611,7 +744,7 @@ export default function App() {
           {configError && <div className="config-error" role="alert"><Icon name="warning"/><div><strong>{configError.startsWith('Latest GitHub configuration unavailable') ? 'Using bundled studio configuration' : 'Configuration update failed'}</strong><p>{configError}</p></div><button type="button" onClick={() => void refreshAll(true)}>Try again</button></div>}
           {visibleResults.length ? (
             <div className="studio-grid" aria-label="Open positions by studio">
-              {visibleResults.map(({ studio, data, jobs }) => <StudioCard key={studio.id} studio={studio} data={data} jobs={jobs} onRefresh={studio.sheetOnly ? refreshSheet : refreshOne}
+              {visibleResults.map(({ studio, data, jobs }) => <StudioCard key={studio.id} studio={studio} brand={brandsById.get(studio.id)} data={data} jobs={jobs} onRefresh={studio.sheetOnly ? refreshSheet : refreshOne}
                 expanded={expanded.includes(studio.id)} onExpand={() => toggleList(setExpanded, studio.id)}/>)}
             </div>
           ) : <div className="empty-state">
