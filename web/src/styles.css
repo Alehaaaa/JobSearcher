@@ -231,6 +231,8 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
   .studio-grid { grid-template-columns: 1fr; gap: 12px; }
   .studio-card { height: 357px; scroll-margin-top: 202px; }
 }
+.source-badge { border: 1px solid var(--divider); color: var(--muted); border-radius: 5px; padding: 3px 5px; font-size: 10px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.source-inline { margin-left: 6px; color: var(--muted); font-size: 10px; white-space: nowrap; font-weight: 500; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }

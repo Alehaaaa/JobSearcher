@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchJobs, loadConfig } from '../scraper.js';
+import { fetchPublicSheet, PUBLIC_SHEET_URL } from '../sheet-source.js';
 import {
   analyzeJob, countLevels, countLocations, createSearchMatcher,
   LEVELS, matchesLevel, matchesLocation, REGIONS,
@@ -11,6 +12,10 @@ const AUTO_OPTIONS = [
   [60, '1 minute', '1m'], [300, '5 minutes', '5m'],
   [600, '10 minutes', '10m'], [3600, '1 hour', '1h'],
 ];
+const SHEET_STUDIO = Object.freeze({
+  id: 'community-sheet', name: 'Community Jobs Sheet',
+  website: PUBLIC_SHEET_URL, careers_url: PUBLIC_SHEET_URL,
+});
 
 function readStored(key, fallback) {
   try {
@@ -49,6 +54,25 @@ function careersUrl(studio) {
   return validUrl(url);
 }
 
+function sourceIndicator(source, proxied) {
+  if (typeof source === 'string' && source.includes('Jina Reader')) {
+    return { label: 'Jina Reader', details: 'Public job listings read through Jina Reader' };
+  }
+  if (proxied) {
+    return { label: 'cors.dev', details: 'Public job listings fetched through the free cors.dev proxy' };
+  }
+  if (source === 'Workable public GET') {
+    return { label: 'Workable API', details: 'Public Workable widget feed fetched directly' };
+  }
+  if (source === 'Disney public GET') {
+    return { label: 'Disney Careers', details: 'Public Disney Careers listings for Pixar' };
+  }
+  if (source === 'Public Google Sheet') {
+    return { label: 'Google Sheet', details: 'Community-contributed job listing from the public Google Sheet; verify directly before applying' };
+  }
+  return null;
+}
+
 function markSeen(studio, entries, history) {
   const now = Date.now();
   const unique = new Map();
@@ -58,7 +82,8 @@ function markSeen(studio, entries, history) {
     if (!title || !link) continue;
     // Workable's public widget can publish separate offices under one link.
     // Keep those listings distinct so London/Paris location filters work.
-    const workplace = job.source === 'Workable public GET' ? '|' + String(job.location || '').trim().toLowerCase() : '';
+    const workplace = job.source === 'Workable public GET' || job.source === 'Public Google Sheet'
+      ? '|' + String(job.location || '').trim().toLowerCase() + '|' + String(job.studioName || '').trim().toLowerCase() : '';
     const dedupe = title.toLowerCase() + '|' + link.toLowerCase() + workplace;
     if (unique.has(dedupe)) continue;
     const key = JSON.stringify([studio.id, link, title, workplace]);
@@ -72,6 +97,9 @@ function markSeen(studio, entries, history) {
       firstSeen,
       proxied: job.proxied === true,
       source: job.source || 'direct',
+      studioName: String(job.studioName || '').trim(),
+      experienceLevel: String(job.experienceLevel || '').trim(),
+      postedOn: job.postedOn || '',
     }));
   }
   // Limit growth without losing first-seen dates for positions currently listed.
@@ -81,7 +109,10 @@ function markSeen(studio, entries, history) {
     for (const key of keys.slice(0, keys.length - 10000)) delete history[key];
   }
   persist('jobHistory', history);
-  return [...unique.values()].sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
+  return [...unique.values()].sort((a, b) => (studio.id === SHEET_STUDIO.id
+    ? (b.postedOn || '').localeCompare(a.postedOn || '') ||
+      a.studioName.localeCompare(b.studioName) : 0) ||
+    a.title.localeCompare(b.title, undefined, { numeric: true }));
 }
 
 function errorText(error) {
@@ -154,6 +185,10 @@ function StudioCard({ studio, data, jobs, onRefresh, expanded, onExpand }) {
   const logo = validUrl(studio.logo_url);
   const [logoFailed, setLogoFailed] = useState(false);
   const limit = expanded ? jobs.length : 35;
+  const sources = [...new Map((data?.sources || [])
+    .map(item => sourceIndicator(item.source, item.proxied))
+    .filter(Boolean)
+    .map(item => [item.label, item])).values()];
   return (
     <section className={'studio-card' + (data?.error ? ' has-error' : '')}
       id={'studio-' + studio.id} aria-label={studio.name}>
@@ -167,7 +202,7 @@ function StudioCard({ studio, data, jobs, onRefresh, expanded, onExpand }) {
           ) : <strong className="logo-fallback">{studio.name}</strong>}
         </div>
         <div className="card-actions">
-          {data?.proxied && <span title="Some listings were retrieved through the free cors.dev proxy" aria-label="Proxy used: cors.dev" style={{fontSize: '10px', color: 'var(--primary)', border: '1px solid var(--divider)', borderRadius: '5px', padding: '3px 5px'}}>Proxy</span>}
+          {sources.map(item => <span key={item.label} className="source-badge" title={item.details}>{item.label}</span>)}
           {data?.loading ? <span className="mini-spinner" role="status" aria-label={'Loading ' + studio.name} /> : data?.hasFetched && <span className="card-count" title="Matching positions">{jobs.length}</span>}
           <button className="icon-button refresh-studio" type="button" onClick={() => onRefresh(studio)}
             aria-label={'Refresh ' + studio.name} title={'Refresh ' + studio.name} disabled={Boolean(data?.loading)}><Icon name="refresh" /></button>
@@ -189,10 +224,11 @@ function StudioCard({ studio, data, jobs, onRefresh, expanded, onExpand }) {
             {jobs.slice(0, limit).map(job => (
               <div className="job-item" key={job.link + '|' + job.title + '|' + job.location}>
                 <a className="job-link" href={job.link} target="_blank" rel="noopener noreferrer" title={'View ' + job.title}>
-                  <span className="job-title">{job.title}{job.proxied && <span title="Retrieved via cors.dev" style={{marginLeft: '6px', fontSize: '10px', color: 'var(--primary)'}}>via proxy</span>}</span>
+                  <span className="job-title">{job.title}{sourceIndicator(job.source, job.proxied) && <span className="source-inline" title={sourceIndicator(job.source, job.proxied).details}>via {sourceIndicator(job.source, job.proxied).label}</span>}</span>
                   <span className="job-meta">
+                    {job.studioName && <span className="job-location" title={job.studioName}>{job.studioName}</span>}
                     {job.location && <span className="job-location" title={job.location}><Icon name="pin"/>{job.location}</span>}
-                    <JobAge firstSeen={job.firstSeen}/>
+                    {job.postedOn ? <time className="job-age" dateTime={job.postedOn} title={'Listed ' + new Date(job.postedOn).toLocaleDateString()}>Listed {new Date(job.postedOn).toLocaleDateString()}</time> : <JobAge firstSeen={job.firstSeen}/>}
                   </span>
                   <Icon name="external" className="job-external"/>
                 </a>
@@ -204,7 +240,7 @@ function StudioCard({ studio, data, jobs, onRefresh, expanded, onExpand }) {
           </div>
         )}
       </div>
-      {data?.updatedAt && <div className="card-footer" title={'Last checked ' + new Date(data.updatedAt).toLocaleString()}>Checked {new Date(data.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
+      {(data?.lastAttemptAt || data?.updatedAt) && <div className="card-footer" title={(data?.error ? 'Last failed attempt ' : 'Last checked ') + new Date(data?.lastAttemptAt || data.updatedAt).toLocaleString()}>{data?.error ? 'Refresh failed ' : 'Checked '}{new Date(data?.lastAttemptAt || data.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
     </section>
   );
 }
@@ -226,6 +262,8 @@ export default function App() {
   const [levels, setLevels] = usePreference('levels', []);
   const [hideEmpty, setHideEmpty] = usePreference('hideEmpty', true);
   const [autoRefresh, setAutoRefresh] = usePreference('autoRefreshSeconds', 0);
+  const [showSheet, setShowSheet] = usePreference('showCommunitySheet', false);
+  const [sheetState, setSheetState] = useState({ jobs: [], loading: false, hasFetched: false, error: null });
   const [openMenu, setOpenMenu] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expanded, setExpanded] = useState([]);
@@ -235,10 +273,11 @@ export default function App() {
   const [draggedStudio, setDraggedStudio] = useState(null);
   const historyRef = useRef(null);
   if (historyRef.current === null) historyRef.current = readStored('jobHistory', {});
-  const inFlight = useRef(new Set());
+  const inFlight = useRef(new Map());
   const scheduled = useRef(new Set());
   const allRefreshPromise = useRef(null);
   const refreshAllRef = useRef(null);
+  const sheetInFlight = useRef(null);
 
   const sortedStudios = useMemo(() => sortStudios(studios, order), [studios, order]);
   const disabledIds = useMemo(() => new Set(disabled), [disabled]);
@@ -247,9 +286,11 @@ export default function App() {
   const jobMatches = useCallback(job => matcher.test(job) && matchesLocation(job, regions, countries) && matchesLevel(job, levels),
     [matcher, regions, countries, levels]);
 
-  const refreshOne = useCallback(async studio => {
-    if (inFlight.current.has(studio.id)) return;
-    inFlight.current.add(studio.id);
+  const refreshOne = useCallback(studio => {
+    // A manual/automatic refresh must wait for an already active studio request.
+    // Returning early caused refresh-all to declare completion before jobs loaded.
+    if (inFlight.current.has(studio.id)) return inFlight.current.get(studio.id);
+    const task = (async () => {
     setCards(previous => ({ ...previous, [studio.id]: { ...(previous[studio.id] || {}), loading: true } }));
     try {
       const fetched = await fetchJobs(studio);
@@ -258,16 +299,38 @@ export default function App() {
       const warnings = Array.isArray(fetched.errors) ? fetched.errors.map(errorText) : [];
       setCards(previous => ({ ...previous, [studio.id]: {
         jobs, warnings, proxied: fetched.proxied === true, sources: fetched.sources || [],
-        loading: false, hasFetched: true, error: null, updatedAt: Date.now(),
+        loading: false, hasFetched: true, error: null, updatedAt: Date.now(), lastAttemptAt: Date.now(),
       } }));
     } catch (error) {
       setCards(previous => ({ ...previous, [studio.id]: {
         ...(previous[studio.id] || {}), loading: false, hasFetched: true,
-        error: errorText(error), updatedAt: Date.now(),
+        error: errorText(error), lastAttemptAt: Date.now(),
       } }));
-    } finally {
-      inFlight.current.delete(studio.id);
     }
+    })();
+    inFlight.current.set(studio.id, task);
+    // Clear only after task completion; return the awaited promise to every caller.
+    void task.finally(() => { if (inFlight.current.get(studio.id) === task) inFlight.current.delete(studio.id); });
+    return task;
+  }, []);
+
+  const refreshSheet = useCallback(() => {
+    if (sheetInFlight.current) return sheetInFlight.current;
+    const task = (async () => {
+      setSheetState(previous => ({ ...previous, loading: true }));
+      try {
+        const jobs = markSeen(SHEET_STUDIO, await fetchPublicSheet(), historyRef.current);
+        setSheetState({ jobs, loading: false, hasFetched: true, error: null,
+          updatedAt: Date.now(), lastAttemptAt: Date.now(),
+          sources: [{ source: 'Public Google Sheet', proxied: false }] });
+      } catch (error) {
+        setSheetState(previous => ({ ...previous, loading: false, hasFetched: true,
+          error: errorText(error), lastAttemptAt: Date.now() }));
+      }
+    })();
+    sheetInFlight.current = task;
+    void task.finally(() => { if (sheetInFlight.current === task) sheetInFlight.current = null; });
+    return task;
   }, []);
 
   useEffect(() => {
@@ -302,10 +365,15 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStudios, refreshOne]);
 
+  useEffect(() => {
+    if (showSheet && !sheetState.hasFetched && !sheetState.loading) void refreshSheet();
+  }, [showSheet, sheetState.hasFetched, sheetState.loading, refreshSheet]);
+
   const refreshAll = useCallback(async (reloadConfig = true) => {
     if (allRefreshPromise.current) return allRefreshPromise.current;
     const task = (async () => {
       setRefreshingAll(true);
+      try {
       let current = sortedStudios;
       if (reloadConfig) {
         try {
@@ -317,11 +385,12 @@ export default function App() {
         } catch (error) { setConfigError(errorText(error)); }
       }
       await batchFetch(current.filter(studio => !disabledIds.has(studio.id)), refreshOne);
-      setRefreshingAll(false);
+      if (showSheet) await refreshSheet();
+      } finally { setRefreshingAll(false); }
     })();
     allRefreshPromise.current = task;
     try { await task; } finally { allRefreshPromise.current = null; }
-  }, [sortedStudios, order, disabledIds, refreshOne]);
+  }, [sortedStudios, order, disabledIds, refreshOne, refreshSheet, showSheet]);
 
   refreshAllRef.current = refreshAll;
   useEffect(() => {
@@ -351,19 +420,28 @@ export default function App() {
     return () => document.body.classList.remove('sidebar-open');
   }, [sidebarOpen]);
 
-  const allJobs = useMemo(() => activeStudios.flatMap(studio => cards[studio.id]?.jobs || []), [activeStudios, cards]);
+  const allJobs = useMemo(() => [
+    ...activeStudios.flatMap(studio => cards[studio.id]?.jobs || []),
+    ...(showSheet ? sheetState.jobs : []),
+  ], [activeStudios, cards, showSheet, sheetState.jobs]);
   const shownJobs = useMemo(() => allJobs.filter(jobMatches), [allJobs, jobMatches]);
   const locationCounts = useMemo(() => countLocations(allJobs.filter(job => matcher.test(job) && matchesLevel(job, levels))), [allJobs, matcher, levels]);
   const levelCounts = useMemo(() => countLevels(allJobs.filter(job => matcher.test(job) && matchesLocation(job, regions, countries))), [allJobs, matcher, regions, countries]);
   const availableCountries = useMemo(() => [...new Set([...Object.keys(locationCounts.countries), ...countries])].sort(), [locationCounts, countries]);
-  const studioResults = useMemo(() => activeStudios.map(studio => ({
+  const studioResults = useMemo(() => [
+    ...(showSheet ? [{ studio: SHEET_STUDIO, data: sheetState, jobs: sheetState.jobs.filter(jobMatches) }] : []),
+    ...activeStudios.map(studio => ({
     studio, data: cards[studio.id], jobs: (cards[studio.id]?.jobs || []).filter(jobMatches),
-  })), [activeStudios, cards, jobMatches]);
+    })),
+  ], [activeStudios, cards, jobMatches, showSheet, sheetState]);
   const visibleResults = studioResults.filter(item => !hideEmpty || item.data?.loading || item.data?.error || !item.data?.hasFetched || item.jobs.length > 0);
   const completedCount = activeStudios.filter(studio => cards[studio.id]?.hasFetched).length;
-  const errorCount = activeStudios.filter(studio => cards[studio.id]?.error || cards[studio.id]?.warnings?.length).length;
-  const proxyCount = activeStudios.filter(studio => cards[studio.id]?.proxied).length;
-  const loadingCount = activeStudios.filter(studio => cards[studio.id]?.loading || !cards[studio.id]?.hasFetched).length;
+  const errorCount = activeStudios.filter(studio => cards[studio.id]?.error || cards[studio.id]?.warnings?.length).length +
+    (showSheet && sheetState.error ? 1 : 0);
+  const proxyCount = activeStudios.filter(studio => (cards[studio.id]?.sources || []).some(source => source.proxied && !String(source.source).includes('Jina Reader'))).length;
+  const readerCount = activeStudios.filter(studio => (cards[studio.id]?.sources || []).some(source => String(source.source).includes('Jina Reader'))).length;
+  const loadingCount = activeStudios.filter(studio => cards[studio.id]?.loading || !cards[studio.id]?.hasFetched).length +
+    (showSheet && (!sheetState.hasFetched || sheetState.loading) ? 1 : 0);
   const hasFilters = Boolean(jobSearch || regions.length || countries.length || levels.length);
   const shownSidebar = sortedStudios.filter(studio => studio.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(studioSearch.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()));
   const activeCount = regions.length + countries.length + levels.length;
@@ -437,7 +515,7 @@ export default function App() {
           })}
           {!shownSidebar.length && <p className="sidebar-empty">No studios match.</p>}
         </div>
-        <div className="sidebar-footer"><span className={'status-dot' + (errorCount || configError ? ' warning' : loadingCount ? ' loading' : '')}/><span>{loadingConfig ? 'Loading studios…' : loadingCount ? 'Checking ' + loadingCount + ' studios…' : errorCount ? errorCount + ' studios could not be reached' : 'Results fetched on this device'}</span></div>
+        <div className="sidebar-footer"><span className={'status-dot' + (errorCount || configError ? ' warning' : loadingCount ? ' loading' : '')}/><span>{loadingConfig ? 'Loading studios…' : loadingCount ? 'Checking ' + loadingCount + ' sources…' : errorCount ? errorCount + ' sources could not be reached' : 'Results fetched on this device'}</span></div>
       </aside>
       {sidebarOpen && <button className="sidebar-scrim" onClick={() => setSidebarOpen(false)} aria-label="Close studio navigation"/>}
       <div className="workspace">
@@ -446,6 +524,9 @@ export default function App() {
             <button type="button" className="icon-button mobile-menu" onClick={() => setSidebarOpen(true)} aria-label="Open studio navigation"><Icon name="menu"/></button>
             <div className="page-identity"><h1>Job Browser</h1><p>Animation · VFX · Games</p></div>
             <div className="toolbar-actions">
+              <button type="button" className={'toolbar-button' + (showSheet ? ' is-selected' : '')}
+                aria-pressed={showSheet} title="Load community-contributed jobs anonymously from the public Google Sheet"
+                onClick={() => setShowSheet(value => !value)}><Icon name="document"/><span className="hide-on-narrow">Community Sheet</span></button>
               <button type="button" className={'toolbar-button' + (hideEmpty ? ' is-selected' : '')} onClick={() => setHideEmpty(value => !value)}
                 aria-pressed={hideEmpty} title={hideEmpty ? 'Showing only studios with matching positions or errors' : 'Show all enabled studios'}><Icon name="eye-off"/><span className="hide-on-narrow">Hide empty</span></button>
               <div className="menu-anchor">
@@ -494,12 +575,13 @@ export default function App() {
               {loadingCount > 0 && <span className="status-note"><span className="mini-spinner"/>Checking {loadingCount}…</span>}
               {errorCount > 0 && <span className="status-note warning"><Icon name="warning"/>{errorCount} connection {errorCount === 1 ? 'issue' : 'issues'}</span>}
               {proxyCount > 0 && <span className="status-note" title="Results retrieved through the public cors.dev service after direct browser requests failed">{proxyCount} {proxyCount === 1 ? 'studio' : 'studios'} via cors.dev proxy</span>}
+              {readerCount > 0 && <span className="status-note" title="Public studio listings retrieved through Jina Reader">{readerCount} {readerCount === 1 ? 'studio' : 'studios'} via Jina Reader</span>}
             </div>
           </div>
           {configError && <div className="config-error" role="alert"><Icon name="warning"/><div><strong>{configError.startsWith('Latest GitHub configuration unavailable') ? 'Using bundled studio configuration' : 'Configuration update failed'}</strong><p>{configError}</p></div><button type="button" onClick={() => void refreshAll(true)}>Try again</button></div>}
           {visibleResults.length ? (
             <div className="studio-grid" aria-label="Open positions by studio">
-              {visibleResults.map(({ studio, data, jobs }) => <StudioCard key={studio.id} studio={studio} data={data} jobs={jobs} onRefresh={refreshOne}
+              {visibleResults.map(({ studio, data, jobs }) => <StudioCard key={studio.id} studio={studio} data={data} jobs={jobs} onRefresh={studio.id === SHEET_STUDIO.id ? refreshSheet : refreshOne}
                 expanded={expanded.includes(studio.id)} onExpand={() => toggleList(setExpanded, studio.id)}/>)}
             </div>
           ) : <div className="empty-state">
@@ -510,7 +592,7 @@ export default function App() {
               {!activeStudios.length ? 'Enable all studios' : hasFilters ? 'Clear filters' : 'Show all studios'}
             </button>
           </div>}
-          <div className="page-footer">Results are loaded live in your browser. Careers sites may restrict cross-origin requests.</div>
+          <div className="page-footer">Results are loaded live in your browser. The optional community spreadsheet is a third-party contributed list, separate from verified studio feeds. Careers sites may restrict cross-origin requests.</div>
         </main>
       </div>
     </div>

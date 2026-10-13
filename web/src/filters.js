@@ -75,7 +75,10 @@ export function analyzeJob(job) {
   const regions = Object.keys(regionPatterns).filter(key => regionPatterns[key].test(location));
   if (!regions.length) regions.push('Unspecified');
   const countries = Object.keys(countryPatterns).filter(key => countryPatterns[key].test(location));
-  const levels = Object.keys(levelPatterns).filter(key => levelPatterns[key].test(title));
+  // Contributed spreadsheet rows include an explicit seniority field. Prefer
+  // that label when present rather than guessing from a title like "Artist".
+  const levelInput = job.experienceLevel ? fold(job.experienceLevel) : title;
+  const levels = Object.keys(levelPatterns).filter(key => levelPatterns[key].test(levelInput));
   if (!levels.length) levels.push('Unspecified');
   return { ...job, regions, countries, levels };
 }
@@ -84,10 +87,10 @@ export function createSearchMatcher(query) {
   if (!query.trim()) return { test: () => true, literalFallback: false };
   try {
     const re = new RegExp(query, 'i');
-    return { test: job => re.test(String(job.title ?? '') + ' ' + String(job.location ?? '')), literalFallback: false };
+    return { test: job => re.test([job.title, job.location, job.studioName].filter(Boolean).join(' ')), literalFallback: false };
   } catch {
     const search = fold(query);
-    return { test: job => fold(String(job.title ?? '') + ' ' + String(job.location ?? '')).includes(search), literalFallback: true };
+    return { test: job => fold([job.title, job.location, job.studioName].filter(Boolean).join(' ')).includes(search), literalFallback: true };
   }
 }
 

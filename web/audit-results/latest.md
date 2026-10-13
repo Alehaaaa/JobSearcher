@@ -1,10 +1,10 @@
 # Live scraper parity audit
 
-Started: 2026-10-13T07:53:15.944Z. Finished: 2026-10-13T07:53:31.679Z.
+Started: 2026-10-13T08:47:51.162Z. Finished: 2026-10-13T08:48:10.242Z.
 Configuration and Python scraper: `origin/main` (199015e6b2d922047200954fba9c902152b99bd8).
 Node v22.23.3; Python `/Users/aleha/Documents/Programming/GitHub/JobUI/.venv/bin/python`; 6 concurrent studios, independent 25s deadlines.
 
-**Results: match: 70 · empty: 10 · mismatch: 0 · partial_failure: 0 · error: 1 · timeout: 0.** Nonempty matches compare the title, link and location of every listing, including duplicates.
+**Results: match: 71 · empty: 10 · mismatch: 0 · partial_failure: 0 · error: 0 · timeout: 0.** Nonempty matches compare the title, link and location of every listing, including duplicates.
 
 **Limitations:** The JavaScript probe uses jsdom for DOM parsing and Node fetch to compare extraction logic. Node does not enforce browser CORS, so these results do not establish which sites permit live GitHub Pages requests. Both-empty feeds remain unverified and are explicitly classified `empty`. The endpoints are live and may change between the Python and JS requests.
 
@@ -34,7 +34,7 @@ Node v22.23.3; Python `/Users/aleha/Documents/Programming/GitHub/JobUI/.venv/bin
 | flyingbark | json | 12 | 12 | match |
 | rodeofx | json | 39 | 39 | match |
 | framestore | html | 10 | 10 | match |
-| skydance | json | 11 | 11 | match |
+| skydance | json | 10 | 10 | match |
 | illusorium | rss | 5 | 5 | match |
 | littlezoo | html | 4 | 4 | match |
 | twinpines | html | 1 | 1 | match |
@@ -57,7 +57,7 @@ Node v22.23.3; Python `/Users/aleha/Documents/Programming/GitHub/JobUI/.venv/bin
 | mainframe | json | 1 | 1 | match |
 | flyingwildhog | json | 5 | 5 | match |
 | brownbag | html | 5 | 5 | match |
-| ubisoft | json | 179 | 179 | match |
+| ubisoft | json | 177 | 177 | match |
 | cinesite | json | 9 | 9 | match |
 | platige | html | 4 | 4 | match |
 | riot | html | 157 | 157 | match |
@@ -76,7 +76,7 @@ Node v22.23.3; Python `/Users/aleha/Documents/Programming/GitHub/JobUI/.venv/bin
 | squeeze | json_text | 4 | 4 | match |
 | zoicstudios | html | 9 | 9 | match |
 | mrxfx | html | 0 | 0 | empty |
-| craftyapes | json | 16 | error | error |
+| craftyapes | json | 16 | 16 | match |
 | kojimaproductions | html | 35 | 35 | match |
 | industrialbrothers | html | 1 | 1 | match |
 | upp | html | 22 | 22 | match |
@@ -96,16 +96,7 @@ Node v22.23.3; Python `/Users/aleha/Documents/Programming/GitHub/JobUI/.venv/bin
 
 ## Exceptions and mismatches
 
-### craftyapes (error)
-
-Python: 16 jobs. JavaScript: error jobs.
-
-JavaScript failure: Studio craftyapes requires a cross-origin CSRF cookie (__Host-next-auth.csrf-token), which a browser cannot read. Use that studio's careers site directly.
-
-javascript warnings:
-
-- {"code":"BROWSER_CSRF_RESTRICTED","message":"Studio craftyapes requires a cross-origin CSRF cookie (__Host-next-auth.csrf-token), which a browser cannot read. Use that studio's careers site directly."}
-
+No discrepancies found in this run.
 ## Reproduce
 
 From the repository root:

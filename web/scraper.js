@@ -1,4 +1,6 @@
 import { fetchAlternativeJobs } from "./alternative-feeds.js";
+import { fetchKojimaJobs } from "./kojima-source.js";
+import { fetchCraftyPublicJobs } from "./crafty-source.js";
 
 // Studio scrapers run entirely inside the visitor's browser on GitHub Pages.
 // Each device fetches the live configuration and contacts studio endpoints itself.
@@ -881,6 +883,29 @@ async function fetchOne(studio, url) {
     }
     return { jobs, proxied, source, url };
   } catch (cause) {
+    // Dayforce's private session/POST route cannot be used from a separate
+    // browser origin, but the same official board publishes public GET links.
+    if (studio.id === "craftyapes" &&
+        ["PREVISIT_BLOCKED", "BROWSER_CSRF_RESTRICTED", "CORS_OR_NETWORK"].includes(cause?.code)) {
+      try {
+        const jobs = await fetchCraftyPublicJobs(studio);
+        if (jobs?.length) return { jobs, proxied: true, source: jobs[0].source, url };
+      } catch (fallbackError) {
+        cause.craftyFeedError = fallbackError;
+        cause.message += " Public Dayforce GET fallback also failed: " + fallbackError.message;
+      }
+    }
+    // Kojima's official HRMOS board is a credential-free public GET
+    // alternative to the original career site's blocked POST viewloader.
+    if (cause?.code === "CORS_OR_NETWORK" && studio.id === "kojimaproductions") {
+      try {
+        const jobs = await fetchKojimaJobs(studio);
+        if (jobs?.length) return { jobs, proxied: true, source: jobs[0].source, url };
+      } catch (fallbackError) {
+        cause.kojimaFeedError = fallbackError;
+        cause.message += " Official HRMOS GET fallback also failed: " + fallbackError.message;
+      }
+    }
     // Digital Domain has an HTTP-only RSS feed and WildBrain's career site
     // rejects cross-origin browser access. Their public listings can also be
     // read through a GET-only Markdown mirror with verifiable original links.

@@ -1,7 +1,7 @@
 {
   "meta": {
-    "auditStartedAt": "2026-10-13T07:53:15.944Z",
-    "auditFinishedAt": "2026-10-13T07:53:31.679Z",
+    "auditStartedAt": "2026-10-13T08:47:51.162Z",
+    "auditFinishedAt": "2026-10-13T08:48:10.242Z",
     "gitRef": "origin/main",
     "resolvedGitSha": "199015e6b2d922047200954fba9c902152b99bd8",
     "python": "/Users/aleha/Documents/Programming/GitHub/JobUI/.venv/bin/python",
@@ -21,9 +21,8 @@
     ]
   },
   "summary": {
-    "match": 70,
-    "empty": 10,
-    "error": 1
+    "match": 71,
+    "empty": 10
   },
   "studios": [
     {
@@ -35,14 +34,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.69,
+        "durationSeconds": 0.68,
         "warnings": [],
         "count": 5
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.9,
+        "durationSeconds": 1.05,
         "warnings": [],
         "count": 5
       },
@@ -78,14 +77,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.65,
+        "durationSeconds": 0.68,
         "warnings": [],
         "count": 10
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.94,
+        "durationSeconds": 1.05,
         "warnings": [],
         "count": 10
       },
@@ -121,14 +120,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.15,
+        "durationSeconds": 1.2,
         "warnings": [],
         "count": 4
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.32,
+        "durationSeconds": 1.42,
         "warnings": [],
         "count": 4
       },
@@ -164,14 +163,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.44,
+        "durationSeconds": 0.59,
         "warnings": [],
         "count": 0
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.68,
+        "durationSeconds": 0.83,
         "warnings": [],
         "count": 0
       },
@@ -207,14 +206,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.27,
+        "durationSeconds": 1.41,
         "warnings": [],
         "count": 10
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.5,
+        "durationSeconds": 1.61,
         "warnings": [],
         "count": 10
       },
@@ -250,14 +249,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.68,
+        "durationSeconds": 0.82,
         "warnings": [],
         "count": 4
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.86,
+        "durationSeconds": 1.04,
         "warnings": [],
         "count": 4
       },
@@ -293,14 +292,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.46,
+        "durationSeconds": 0.44,
         "warnings": [],
         "count": 49
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.69,
+        "durationSeconds": 0.7,
         "warnings": [],
         "count": 49
       },
@@ -336,7 +335,7 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.47,
+        "durationSeconds": 0.46,
         "warnings": [],
         "count": 2
       },
@@ -379,14 +378,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.68,
+        "durationSeconds": 0.46,
         "warnings": [],
         "count": 0
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.63,
+        "durationSeconds": 0.66,
         "warnings": [],
         "count": 0
       },
@@ -422,14 +421,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.81,
+        "durationSeconds": 0.71,
         "warnings": [],
         "count": 83
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1,
+        "durationSeconds": 0.95,
         "warnings": [],
         "count": 83
       },
@@ -465,14 +464,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1,
+        "durationSeconds": 0.91,
         "warnings": [],
         "count": 0
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.14,
+        "durationSeconds": 1.09,
         "warnings": [],
         "count": 0
       },
@@ -508,14 +507,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 2.05,
+        "durationSeconds": 0.59,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 2.1,
+        "durationSeconds": 0.7,
         "warnings": [],
         "count": 1
       },
@@ -551,14 +550,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.42,
+        "durationSeconds": 0.52,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.58,
+        "durationSeconds": 0.85,
         "warnings": [],
         "count": 1
       },
@@ -601,7 +600,7 @@
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.25,
+        "durationSeconds": 0.93,
         "warnings": [],
         "count": 4
       },
@@ -637,14 +636,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 4.82,
+        "durationSeconds": 3.3,
         "warnings": [],
         "count": 0
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 5.43,
+        "durationSeconds": 3.5,
         "warnings": [],
         "count": 0
       },
@@ -680,14 +679,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.53,
+        "durationSeconds": 0.87,
         "warnings": [],
         "count": 10
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.97,
+        "durationSeconds": 0.76,
         "warnings": [],
         "count": 10
       },
@@ -730,7 +729,7 @@
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.01,
+        "durationSeconds": 1.03,
         "warnings": [],
         "count": 28
       },
@@ -766,14 +765,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.62,
+        "durationSeconds": 0.43,
         "warnings": [],
         "count": 4
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.76,
+        "durationSeconds": 0.61,
         "warnings": [],
         "count": 4
       },
@@ -809,14 +808,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.14,
+        "durationSeconds": 0.2,
         "warnings": [],
         "count": 0
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.24,
+        "durationSeconds": 0.32,
         "warnings": [],
         "count": 0
       },
@@ -852,14 +851,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.72,
+        "durationSeconds": 0.49,
         "warnings": [],
         "count": 12
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.64,
+        "durationSeconds": 0.68,
         "warnings": [],
         "count": 12
       },
@@ -895,14 +894,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.33,
+        "durationSeconds": 0.35,
         "warnings": [],
         "count": 39
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.55,
+        "durationSeconds": 0.79,
         "warnings": [],
         "count": 39
       },
@@ -938,14 +937,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.39,
+        "durationSeconds": 0.44,
         "warnings": [],
         "count": 10
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.7,
+        "durationSeconds": 0.71,
         "warnings": [],
         "count": 10
       },
@@ -981,16 +980,16 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.39,
+        "durationSeconds": 1.37,
         "warnings": [],
-        "count": 11
+        "count": 10
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.5,
+        "durationSeconds": 15.97,
         "warnings": [],
-        "count": 11
+        "count": 10
       },
       "differences": {
         "pythonOnly": {
@@ -1024,14 +1023,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.64,
+        "durationSeconds": 0.48,
         "warnings": [],
         "count": 5
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.69,
+        "durationSeconds": 0.64,
         "warnings": [],
         "count": 5
       },
@@ -1067,14 +1066,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.4,
+        "durationSeconds": 0.43,
         "warnings": [],
         "count": 4
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.7,
+        "durationSeconds": 0.65,
         "warnings": [],
         "count": 4
       },
@@ -1110,14 +1109,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.32,
+        "durationSeconds": 0.44,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.5,
+        "durationSeconds": 0.53,
         "warnings": [],
         "count": 1
       },
@@ -1153,14 +1152,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.63,
+        "durationSeconds": 1.74,
         "warnings": [],
         "count": 8
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.71,
+        "durationSeconds": 1.84,
         "warnings": [],
         "count": 8
       },
@@ -1196,14 +1195,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.94,
+        "durationSeconds": 0.81,
         "warnings": [],
         "count": 3
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.96,
+        "durationSeconds": 0.94,
         "warnings": [],
         "count": 3
       },
@@ -1239,14 +1238,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.47,
+        "durationSeconds": 0.99,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.58,
+        "durationSeconds": 0.99,
         "warnings": [],
         "count": 1
       },
@@ -1282,14 +1281,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.4,
+        "durationSeconds": 0.56,
         "warnings": [],
         "count": 11
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.57,
+        "durationSeconds": 0.58,
         "warnings": [],
         "count": 11
       },
@@ -1325,14 +1324,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.46,
+        "durationSeconds": 0.83,
         "warnings": [],
         "count": 3
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.66,
+        "durationSeconds": 0.89,
         "warnings": [],
         "count": 3
       },
@@ -1368,14 +1367,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.52,
+        "durationSeconds": 0.56,
         "warnings": [],
         "count": 3
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.85,
+        "durationSeconds": 0.73,
         "warnings": [],
         "count": 3
       },
@@ -1411,14 +1410,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.42,
+        "durationSeconds": 0.36,
         "warnings": [],
         "count": 31
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.63,
+        "durationSeconds": 0.6,
         "warnings": [],
         "count": 31
       },
@@ -1454,14 +1453,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.37,
+        "durationSeconds": 0.51,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.59,
+        "durationSeconds": 0.77,
         "warnings": [],
         "count": 1
       },
@@ -1497,14 +1496,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.45,
+        "durationSeconds": 0.51,
         "warnings": [],
         "count": 0
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.69,
+        "durationSeconds": 0.72,
         "warnings": [],
         "count": 0
       },
@@ -1540,14 +1539,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.55,
+        "durationSeconds": 0.63,
         "warnings": [],
         "count": 7
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.75,
+        "durationSeconds": 0.79,
         "warnings": [],
         "count": 7
       },
@@ -1583,14 +1582,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.94,
+        "durationSeconds": 0.99,
         "warnings": [],
         "count": 0
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.12,
+        "durationSeconds": 1.18,
         "warnings": [],
         "count": 0
       },
@@ -1626,14 +1625,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.48,
+        "durationSeconds": 0.55,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.63,
+        "durationSeconds": 0.69,
         "warnings": [],
         "count": 1
       },
@@ -1669,14 +1668,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.66,
+        "durationSeconds": 0.59,
         "warnings": [],
         "count": 73
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.77,
+        "durationSeconds": 0.78,
         "warnings": [],
         "count": 73
       },
@@ -1712,14 +1711,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.33,
+        "durationSeconds": 0.44,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.5,
+        "durationSeconds": 0.49,
         "warnings": [],
         "count": 1
       },
@@ -1755,14 +1754,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.55,
+        "durationSeconds": 1.81,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.63,
+        "durationSeconds": 1.83,
         "warnings": [],
         "count": 1
       },
@@ -1798,14 +1797,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.73,
+        "durationSeconds": 1.82,
         "warnings": [],
         "count": 4
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.78,
+        "durationSeconds": 1.91,
         "warnings": [],
         "count": 4
       },
@@ -1841,14 +1840,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.72,
+        "durationSeconds": 0.75,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.55,
+        "durationSeconds": 0.62,
         "warnings": [],
         "count": 1
       },
@@ -1884,14 +1883,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.47,
+        "durationSeconds": 0.42,
         "warnings": [],
         "count": 5
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.52,
+        "durationSeconds": 0.57,
         "warnings": [],
         "count": 5
       },
@@ -1930,14 +1929,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.9,
+        "durationSeconds": 1.8,
         "warnings": [],
         "count": 5
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.24,
+        "durationSeconds": 1.19,
         "warnings": [],
         "count": 5
       },
@@ -1973,16 +1972,16 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.13,
+        "durationSeconds": 0.92,
         "warnings": [],
-        "count": 179
+        "count": 177
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.14,
+        "durationSeconds": 0.99,
         "warnings": [],
-        "count": 179
+        "count": 177
       },
       "differences": {
         "pythonOnly": {
@@ -2020,14 +2019,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.17,
+        "durationSeconds": 1.16,
         "warnings": [],
         "count": 9
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.76,
+        "durationSeconds": 0.7,
         "warnings": [],
         "count": 9
       },
@@ -2063,14 +2062,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.52,
+        "durationSeconds": 0.62,
         "warnings": [],
         "count": 4
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.62,
+        "durationSeconds": 0.72,
         "warnings": [],
         "count": 4
       },
@@ -2106,14 +2105,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.42,
+        "durationSeconds": 1.04,
         "warnings": [],
         "count": 157
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.61,
+        "durationSeconds": 1.22,
         "warnings": [],
         "count": 157
       },
@@ -2149,14 +2148,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.92,
+        "durationSeconds": 0.57,
         "warnings": [],
         "count": 21
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.08,
+        "durationSeconds": 1.02,
         "warnings": [],
         "count": 21
       },
@@ -2192,14 +2191,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.39,
+        "durationSeconds": 0.4,
         "warnings": [],
         "count": 10
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.59,
+        "durationSeconds": 0.61,
         "warnings": [],
         "count": 10
       },
@@ -2235,14 +2234,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.41,
+        "durationSeconds": 0.39,
         "warnings": [],
         "count": 10
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.58,
+        "durationSeconds": 0.62,
         "warnings": [],
         "count": 10
       },
@@ -2278,14 +2277,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.68,
+        "durationSeconds": 0.44,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.68,
+        "durationSeconds": 0.5,
         "warnings": [],
         "count": 1
       },
@@ -2321,14 +2320,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.44,
+        "durationSeconds": 0.52,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.54,
+        "durationSeconds": 0.74,
         "warnings": [],
         "count": 1
       },
@@ -2364,14 +2363,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.73,
+        "durationSeconds": 0.64,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.87,
+        "durationSeconds": 1.16,
         "warnings": [],
         "count": 1
       },
@@ -2407,14 +2406,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.53,
+        "durationSeconds": 0.78,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.6,
+        "durationSeconds": 0.79,
         "warnings": [],
         "count": 1
       },
@@ -2450,14 +2449,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.77,
+        "durationSeconds": 0.85,
         "warnings": [],
         "count": 4
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.07,
+        "durationSeconds": 1.19,
         "warnings": [],
         "count": 4
       },
@@ -2493,14 +2492,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.81,
+        "durationSeconds": 0.72,
         "warnings": [],
         "count": 0
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.95,
+        "durationSeconds": 1.02,
         "warnings": [],
         "count": 0
       },
@@ -2536,14 +2535,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.84,
+        "durationSeconds": 0.7,
         "warnings": [],
         "count": 9
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.04,
+        "durationSeconds": 0.99,
         "warnings": [],
         "count": 9
       },
@@ -2579,14 +2578,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 2.64,
+        "durationSeconds": 3.2,
         "warnings": [],
         "count": 2
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 3.49,
+        "durationSeconds": 2.79,
         "warnings": [],
         "count": 2
       },
@@ -2622,14 +2621,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.03,
+        "durationSeconds": 1.4,
         "warnings": [],
         "count": 12
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.19,
+        "durationSeconds": 1.51,
         "warnings": [],
         "count": 12
       },
@@ -2665,14 +2664,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.34,
+        "durationSeconds": 0.46,
         "warnings": [],
         "count": 4
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.67,
+        "durationSeconds": 0.74,
         "warnings": [],
         "count": 4
       },
@@ -2708,14 +2707,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.72,
+        "durationSeconds": 0.45,
         "warnings": [],
         "count": 9
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.97,
+        "durationSeconds": 0.67,
         "warnings": [],
         "count": 9
       },
@@ -2751,14 +2750,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.78,
+        "durationSeconds": 2.46,
         "warnings": [],
         "count": 0
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 2.17,
+        "durationSeconds": 2.65,
         "warnings": [],
         "count": 0
       },
@@ -2790,26 +2789,42 @@
       "name": "Crafty Apes",
       "strategy": "json",
       "careersUrl": "https://jobs.dayforcehcm.com/api/geo/craftyapes/jobposting/search",
-      "status": "error",
+      "status": "match",
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.31,
+        "durationSeconds": 1.02,
         "warnings": [],
         "count": 16
       },
       "javascript": {
-        "ok": false,
+        "ok": true,
         "timeout": false,
-        "durationSeconds": 0.8,
-        "warnings": [
-          {
-            "code": "BROWSER_CSRF_RESTRICTED",
-            "message": "Studio craftyapes requires a cross-origin CSRF cookie (__Host-next-auth.csrf-token), which a browser cannot read. Use that studio's careers site directly."
-          }
-        ],
-        "error": "Studio craftyapes requires a cross-origin CSRF cookie (__Host-next-auth.csrf-token), which a browser cannot read. Use that studio's careers site directly.",
-        "count": null
+        "durationSeconds": 1.37,
+        "warnings": [],
+        "count": 16
+      },
+      "differences": {
+        "pythonOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "javascriptOnly": {
+          "total": 0,
+          "samples": []
+        },
+        "titleDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "linkDifferences": {
+          "total": 0,
+          "samples": []
+        },
+        "locationDifferences": {
+          "total": 0,
+          "samples": []
+        }
       }
     },
     {
@@ -2821,14 +2836,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.99,
+        "durationSeconds": 0.94,
         "warnings": [],
         "count": 35
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.04,
+        "durationSeconds": 1.1,
         "warnings": [],
         "count": 35
       },
@@ -2864,14 +2879,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.1,
+        "durationSeconds": 1.2,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.24,
+        "durationSeconds": 1.5,
         "warnings": [],
         "count": 1
       },
@@ -2907,14 +2922,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.99,
+        "durationSeconds": 1.33,
         "warnings": [],
         "count": 22
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.22,
+        "durationSeconds": 1.53,
         "warnings": [],
         "count": 22
       },
@@ -2950,14 +2965,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.5,
+        "durationSeconds": 0.54,
         "warnings": [],
         "count": 8
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.56,
+        "durationSeconds": 0.66,
         "warnings": [],
         "count": 8
       },
@@ -2993,14 +3008,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.35,
+        "durationSeconds": 0.48,
         "warnings": [],
         "count": 11
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.74,
+        "durationSeconds": 5.28,
         "warnings": [],
         "count": 11
       },
@@ -3036,14 +3051,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.72,
+        "durationSeconds": 0.79,
         "warnings": [],
         "count": 3
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.86,
+        "durationSeconds": 1.11,
         "warnings": [],
         "count": 3
       },
@@ -3079,14 +3094,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.33,
+        "durationSeconds": 0.47,
         "warnings": [],
         "count": 47
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.51,
+        "durationSeconds": 0.87,
         "warnings": [],
         "count": 47
       },
@@ -3122,14 +3137,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.66,
+        "durationSeconds": 0.83,
         "warnings": [],
         "count": 13
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.72,
+        "durationSeconds": 1.11,
         "warnings": [],
         "count": 13
       },
@@ -3165,14 +3180,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 3.66,
+        "durationSeconds": 3.63,
         "warnings": [],
         "count": 2
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 3.68,
+        "durationSeconds": 3.65,
         "warnings": [],
         "count": 2
       },
@@ -3208,14 +3223,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.42,
+        "durationSeconds": 0.37,
         "warnings": [],
         "count": 3
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.64,
+        "durationSeconds": 0.52,
         "warnings": [],
         "count": 3
       },
@@ -3251,14 +3266,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.37,
+        "durationSeconds": 0.36,
         "warnings": [],
         "count": 2
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.61,
+        "durationSeconds": 0.53,
         "warnings": [],
         "count": 2
       },
@@ -3294,14 +3309,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.89,
+        "durationSeconds": 0.88,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.08,
+        "durationSeconds": 1.24,
         "warnings": [],
         "count": 1
       },
@@ -3337,14 +3352,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.81,
+        "durationSeconds": 0.93,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 1.14,
+        "durationSeconds": 1.11,
         "warnings": [],
         "count": 1
       },
@@ -3380,14 +3395,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.42,
+        "durationSeconds": 0.34,
         "warnings": [],
         "count": 74
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.62,
+        "durationSeconds": 0.52,
         "warnings": [],
         "count": 74
       },
@@ -3423,14 +3438,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.7,
+        "durationSeconds": 0.86,
         "warnings": [],
         "count": 1
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.72,
+        "durationSeconds": 1.02,
         "warnings": [],
         "count": 1
       },
@@ -3466,14 +3481,14 @@
       "python": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.66,
+        "durationSeconds": 0.68,
         "warnings": [],
         "count": 0
       },
       "javascript": {
         "ok": true,
         "timeout": false,
-        "durationSeconds": 0.69,
+        "durationSeconds": 0.84,
         "warnings": [],
         "count": 0
       },
