@@ -1,4 +1,6 @@
 // Align the region and seniority conventions with UI/ContentView.swift.
+// Maintain small city aliases; recognize country names offline via world-countries.
+import { detectCountryRegions } from './world-location.js';
 export const REGIONS = [
   'Europe', 'North America', 'South America', 'Asia', 'Africa',
   'Oceania', 'Remote', 'Unspecified',
@@ -9,10 +11,10 @@ export const LEVELS = [
 ];
 
 const REGION_ALIASES = {
-  Europe: 'europe|europa|uk|united kingdom|england|scotland|ireland|france|paris|bordeaux|london|manchester|germany|berlin|munich|münchen|frankfurt|spain|españa|madrid|barcelona|tenerife|poland|warsaw|wroclaw|wrocław|czechia|czech republic|prague|slovakia|bratislava|italy|rome|portugal|netherlands|amsterdam|belgium|sweden|stockholm|norway|denmark|finland|austria|switzerland|zurich|zürich|luxembourg|contern|montpellier|kilkenny|dublin|newcastle upon tyne|bulgaria|sofia|romania|bucharest|ukraine|kyiv|odesa|estonia|tallinn|malta|st julians|saint julians|gibraltar|bosnia and herzegovina|sarajevo|croatia|zagreb|serbia|belgrade|slovenia|ljubljana|latvia|riga|lithuania|vilnius|hungary|budapest|greece|athens|cyprus|nicosia|iceland|reykjavik|north macedonia|skopje|montenegro|podgorica|moldova|chisinau',
+  Europe: 'europe|europa|uk|united kingdom|england|scotland|ireland|france|paris|bordeaux|london|manchester|germany|berlin|munich|münchen|frankfurt|spain|españa|madrid|barcelona|tenerife|poland|warsaw|wroclaw|wrocław|czechia|czech republic|prague|slovakia|bratislava|italy|rome|milan|milano|turin|torino|florence|firenze|portugal|netherlands|amsterdam|belgium|sweden|stockholm|norway|denmark|finland|austria|switzerland|zurich|zürich|luxembourg|contern|montpellier|kilkenny|dublin|newcastle upon tyne|bulgaria|sofia|romania|bucharest|ukraine|kyiv|odesa|estonia|tallinn|malta|st julians|saint julians|gibraltar|bosnia and herzegovina|sarajevo|croatia|zagreb|serbia|belgrade|slovenia|ljubljana|latvia|riga|lithuania|vilnius|hungary|budapest|greece|athens|cyprus|nicosia|iceland|reykjavik|north macedonia|skopje|montenegro|podgorica|moldova|chisinau',
   'North America': 'united states|usa|us|canada|california|los angeles|burbank|glendale|san francisco|pasadena|universal city|new york|boston|atlanta|georgia|oregon|portland|hillsboro|vancouver|toronto|montreal|montréal|quebec|québec|ottawa|british columbia|bc|ontario|montpelier|vermont|mexico|méxico|mexico city|north america',
   'South America': 'brazil|brasil|argentina|chile|colombia|peru|perú|uruguay|paraguay|ecuador|venezuela|bolivia|south america|latin america',
-  Asia: 'asia|japan|tokyo|india|mumbai|bengaluru|bangalore|hyderabad|china|shanghai|beijing|hong kong|korea|seoul|singapore|taiwan|thailand|vietnam|philippines|malaysia|indonesia|united arab emirates|dubai|uae|israel|turkey|türkiye|kazakhstan|almaty|astana|uzbekistan|tashkent|samarkand|kyrgyzstan|bishkek',
+  Asia: 'asia|japan|tokyo|india|mumbai|bengaluru|bangalore|hyderabad|sri lanka|colombo|kandy|china|shanghai|beijing|hong kong|korea|seoul|singapore|taiwan|thailand|vietnam|philippines|malaysia|indonesia|united arab emirates|dubai|uae|israel|turkey|türkiye|kazakhstan|almaty|astana|uzbekistan|tashkent|samarkand|kyrgyzstan|bishkek',
   Africa: 'africa|south africa|cape town|johannesburg|morocco|egypt|nigeria|kenya|mauritius|saint pierre',
   Oceania: 'oceania|australia|sydney|melbourne|brisbane|north lakes|adelaide|new zealand|wellington|auckland',
   Remote: 'remote|teletrabajo|work from home|anywhere',
@@ -39,8 +41,9 @@ const COUNTRY_ALIASES = {
   Hungary: 'hungary|budapest',
   Iceland: 'iceland|reykjavik',
   India: 'india|mumbai|bengaluru|bangalore|hyderabad|pune',
+  'Sri Lanka': 'sri lanka|colombo|kandy',
   Ireland: 'ireland|dublin|kilkenny',
-  Italy: 'italy|rome|milan',
+  Italy: 'italy|rome|milan|milano|turin|torino|florence|firenze',
   Japan: 'japan|tokyo|osaka',
   Kazakhstan: 'kazakhstan|almaty|astana',
   Kyrgyzstan: 'kyrgyzstan|bishkek',
@@ -91,9 +94,16 @@ const levelPatterns = Object.fromEntries(Object.entries(LEVEL_TERMS).map(([key, 
 export function analyzeJob(job) {
   const location = fold(job.location);
   const title = fold(job.title);
-  const regions = Object.keys(regionPatterns).filter(key => regionPatterns[key].test(location));
+  const fromCountryData = detectCountryRegions(job.location);
+  const regions = [...new Set([
+    ...Object.keys(regionPatterns).filter(key => regionPatterns[key].test(location)),
+    ...fromCountryData.regions,
+  ])];
   if (!regions.length) regions.push('Unspecified');
-  const countries = Object.keys(countryPatterns).filter(key => countryPatterns[key].test(location));
+  const countries = [...new Set([
+    ...Object.keys(countryPatterns).filter(key => countryPatterns[key].test(location)),
+    ...fromCountryData.countries,
+  ])];
   // Contributed spreadsheet rows include an explicit seniority field. Prefer
   // that label when present rather than guessing from a title like "Artist".
   const levelInput = job.experienceLevel ? fold(job.experienceLevel) : title;

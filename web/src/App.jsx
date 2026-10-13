@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchJobs, loadConfig, normalizeStudioJobLink } from '../scraper.js';
-import { fetchPublicSheet, parseSheetReference, PUBLIC_SHEET_URL } from '../sheet-source.js';
+import { fetchPublicSheet, parseSheetReference, PUBLIC_SHEET_URL, DEFAULT_PUBLIC_SHEET_NAME, displaySheetListName } from '../sheet-source.js';
 import { groupSheetStudios, mergeStudioJobs } from '../sheet-companies.js';
-import { displayLevel, displayLocation, relativeJobTime } from './job-presentation.js';
+import { displayLevel, displayLocation, relativeJobTime, jobAgeAppearance } from './job-presentation.js';
 import { whenNearViewport } from './viewport.js';
 import { resolveStudioBrand } from './studio-logo.js';
 import { VERIFIED_STUDIO_HOMEPAGES } from './verified-studio-homepages.js';
@@ -17,7 +17,7 @@ const AUTO_OPTIONS = [
   [60, '1 minute', '1m'], [300, '5 minutes', '5m'],
   [600, '10 minutes', '10m'], [3600, '1 hour', '1h'],
 ];
-const DEFAULT_SHEET_LISTS = [{ url: PUBLIC_SHEET_URL, name: 'Community Jobs', enabled: true }];
+const DEFAULT_SHEET_LISTS = [{ url: PUBLIC_SHEET_URL, name: DEFAULT_PUBLIC_SHEET_NAME, enabled: true }];
 const sheetKey = reference => reference.key || reference.id + ':' + (reference.gid || reference.sheet || '0');
 
 function readStored(key, fallback) {
@@ -242,9 +242,12 @@ function StudioCard({ studio, brand, data, jobs, onRefresh, expanded, onExpand }
           </div>
         ) : (
           <div className="job-list">
-            {jobs.slice(0, limit).map(job => (
-              <div className="job-item" key={job.link + '|' + job.title + '|' + job.location}>
-                <a className="job-link" href={job.link} target="_blank" rel="noopener noreferrer" title={'View ' + job.title}>
+            {jobs.slice(0, limit).map(job => {
+              const appearance = jobAgeAppearance(job);
+              return <div className="job-item" key={job.link + '|' + job.title + '|' + job.location}>
+                <a className={'job-link' + (appearance ? ' has-age-tint' : '')}
+                   style={appearance || undefined}
+                   href={job.link} target="_blank" rel="noopener noreferrer" title={'View ' + job.title}>
                   <span className="job-title">{job.title}</span>
                   <span className="job-meta">
                     <span className="job-location" title={displayLocation(job)}><Icon name="pin"/>{displayLocation(job)}</span>
@@ -254,8 +257,8 @@ function StudioCard({ studio, brand, data, jobs, onRefresh, expanded, onExpand }
                   <Icon name="external" className="job-external"/>
                 </a>
                 {job.extraLink && <a className="job-extra" href={job.extraLink} target="_blank" rel="noopener noreferrer" aria-label={'Additional details for ' + job.title} title="Additional details"><Icon name="document"/></a>}
-              </div>
-            ))}
+              </div>;
+            })}
             {!expanded && jobs.length > limit && <button type="button" className="show-more" onClick={onExpand}>Show {jobs.length - limit} more positions</button>}
             {expanded && jobs.length > 35 && <button type="button" className="show-more" onClick={onExpand}>Show fewer</button>}
           </div>
@@ -309,7 +312,7 @@ export default function App() {
     .flatMap(entry => {
       try {
         const reference = parseSheetReference(entry);
-        return [{ ...reference, key: sheetKey(reference), name: entry.name || reference.name || 'Untitled list', enabled: entry.enabled !== false }];
+        return [{ ...reference, key: sheetKey(reference), name: displaySheetListName(entry, reference), enabled: entry.enabled !== false }];
       } catch { return []; }
     }), [sheetLists]);
   const enabledSheets = useMemo(() => parsedSheets.filter(entry => entry.enabled), [parsedSheets]);

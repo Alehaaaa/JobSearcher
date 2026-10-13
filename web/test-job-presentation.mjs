@@ -51,3 +51,39 @@ test('offline studio configuration has the same Blur fallback as JobSearcher/mai
   assert.deepEqual(blur.scraping.map.location,
     { selector: 'p.body__secondary', default: 'Culver City, California' });
 });
+
+test('maintained countries and city aliases classify Milano and Sri Lanka correctly', async () => {
+  const { analyzeJob, matchesLocation } = await import('./src/filters.js');
+  const examples = [
+    ['Milano', 'Europe', 'Italy'],
+    ['Milano, Italia', 'Europe', 'Italy'],
+    ['Colombo, Sri Lanka', 'Asia', 'Sri Lanka'],
+    ['Colombo Sri Lanka', 'Asia', 'Sri Lanka'],
+    ['Sri Lanka', 'Asia', 'Sri Lanka'],
+    ['Kathmandu, Nepal', 'Asia', 'Nepal'],
+    ['Auckland, New Zealand', 'Oceania', 'New Zealand'],
+    ['Reykjavik, Iceland', 'Europe', 'Iceland'],
+  ];
+  for (const [location, region, country] of examples) {
+    const job = analyzeJob({ title: 'Lighting Artist', location });
+    assert.ok(job.regions.includes(region), location + ' missing region ' + region);
+    assert.ok(job.countries.includes(country), location + ' missing country ' + country);
+    assert.ok(!job.regions.includes('Unspecified'), location + ' incorrectly unspecified');
+    assert.ok(matchesLocation(job, [], [country]), location + ' country filter broken');
+  }
+  const unknown = analyzeJob({ title: 'Artist', location: 'Imaginary City' });
+  assert.deepEqual(unknown.regions, ['Unspecified']);
+});
+
+test('original ten-day job discovery heat map is stable and fades to neutral', async () => {
+  const { jobAgeAppearance } = await import('./src/job-presentation.js');
+  const now = Date.parse('2026-10-13T12:00:00Z');
+  const daysAgo = days => now - days * 86_400_000;
+  assert.match(jobAgeAppearance({ firstSeen: daysAgo(0) }, now)['--job-age-border'], /76, 175, 80/);
+  assert.ok(jobAgeAppearance({ firstSeen: daysAgo(5) }, now));
+  assert.ok(jobAgeAppearance({ firstSeen: daysAgo(8) }, now));
+  assert.equal(jobAgeAppearance({ firstSeen: daysAgo(10) }, now), null);
+  assert.equal(jobAgeAppearance({ postedOn: new Date(now).toISOString() }, now), null);
+  assert.equal(jobAgeAppearance({ firstSeen: 'invalid' }, now), null);
+  assert.equal(jobAgeAppearance({ firstSeen: daysAgo(0) }, now)['--job-age-tint'], 'rgba(76, 175, 80, 0.110)');
+});

@@ -27,3 +27,39 @@ export function relativeJobTime(value, now = Date.now()) {
 export function displayLocation(job) {
   return String(job?.location || '').trim() || 'Unspecified';
 }
+
+
+/**
+ * Heat map recovered from the original Python JobWidget:
+ * green (0d) -> orange (5d) -> red (8d) -> grey (10d).
+ * Its README mentions five days but executable source uses ten days.
+ * Use locally tracked firstSeen only, never pretend old listed jobs are new.
+ * Returns CSS custom properties or null for older / undated entries.
+ */
+export function jobAgeAppearance(job, now = Date.now()) {
+  const input = job?.firstSeen;
+  const when = typeof input === 'number' ? input : Date.parse(String(input || ''));
+  if (!Number.isFinite(when) || when <= 0) return null;
+  const day = 86_400_000;
+  const age = Math.max(0, now - when);
+  if (age >= 10 * day) return null;
+  const targets = [
+    [76, 175, 80], [255, 152, 0], [244, 67, 54], [85, 85, 85],
+  ];
+  const step = age <= 5 * day ? age / (5 * day)
+    : age <= 8 * day ? 1 + (age - 5 * day) / (3 * day)
+    : 2 + (age - 8 * day) / (2 * day);
+  const i = Math.min(2, Math.floor(step));
+  const ratio = Math.max(0, Math.min(1, step - i));
+  // Fresh entries stay vibrant, then fade to 40% saturation after day one.
+  const vibrancy = 1 - 0.6 * Math.min(1, age / day);
+  const rgb = [0, 1, 2].map(channel => {
+    const base = targets[i][channel] +
+      (targets[i + 1][channel] - targets[i][channel]) * ratio;
+    return Math.round(base * vibrancy + 85 * (1 - vibrancy));
+  }).join(', ');
+  return {
+    '--job-age-border': 'rgba(' + rgb + ', .68)',
+    '--job-age-tint': 'rgba(' + rgb + ', ' + (0.11 - age / (10 * day) * 0.07).toFixed(3) + ')',
+  };
+}

@@ -264,3 +264,15 @@ test('blank Boolean cells from Google Sheets do not become city, province or cou
     'Test Company,Animator,https://example.org/job/3,"Tallinn, FALSE, Estonia"');
   assert.equal(flat[0].location, 'Tallinn, Estonia');
 });
+
+test('renames the bundled default sheet but preserves custom saved names and other lists', async () => {
+  const { displaySheetListName, DEFAULT_PUBLIC_SHEET_NAME } = await import('./sheet-source.js');
+  const original = parseSheetReference(PUBLIC_SHEET_URL);
+  assert.equal(DEFAULT_PUBLIC_SHEET_NAME, 'Animation/VFX/Game Jobs');
+  assert.equal(displaySheetListName({ name: 'Community Jobs' }, original), DEFAULT_PUBLIC_SHEET_NAME);
+  assert.equal(displaySheetListName({ name: 'Community Jobs Sheet' }, original), DEFAULT_PUBLIC_SHEET_NAME);
+  assert.equal(displaySheetListName({ name: 'My own renamed list' }, original), 'My own renamed list');
+  assert.equal(displaySheetListName({ name: 'Community Jobs' },
+    parseSheetReference(view + '/edit?gid=0')), 'Community Jobs');
+  assert.equal(original.csvUrl, PUBLIC_SHEET_CSV_URL);
+});

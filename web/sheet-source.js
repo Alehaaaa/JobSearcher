@@ -3,6 +3,7 @@
 // a sheet not publicly readable anonymously is not fetched by this module.
 export const PUBLIC_SHEET_URL =
   'https://docs.google.com/spreadsheets/d/1eR2oAXOuflr8CZeGoz3JTrsgNj3KuefbdXJOmNtjEVM/edit?gid=0#gid=0';
+export const DEFAULT_PUBLIC_SHEET_NAME = 'Animation/VFX/Game Jobs';
 export const PUBLIC_SHEET_CSV_URL =
   'https://docs.google.com/spreadsheets/d/1eR2oAXOuflr8CZeGoz3JTrsgNj3KuefbdXJOmNtjEVM/gviz/tq?tqx=out:csv&gid=0';
 
@@ -105,6 +106,19 @@ export function parseSheetReference(input = PUBLIC_SHEET_URL) {
   // Do not include names or Google account tokens in the request URL.
   return { key: id + ':' + (gid ?? 'sheet:' + sheet), id, gid: gid ?? '',
     sheet: sheet ?? '', name, url: viewUrl.href, csvUrl };
+}
+
+/**
+ * Rename only the original bundled list, including copies persisted under
+ * its earlier label. Never rename an unrelated or user-customized list.
+ */
+export function displaySheetListName(entry, reference) {
+  const current = String(entry?.name || reference?.name || '').trim();
+  const defaultId = parseSheetReference(PUBLIC_SHEET_URL).id;
+  if (reference?.id === defaultId && reference?.gid === '0' &&
+      (!current || current === 'Community Jobs' || current === 'Community Jobs Sheet'))
+    return DEFAULT_PUBLIC_SHEET_NAME;
+  return current || 'Untitled list';
 }
 
 export function parseCSV(source) {

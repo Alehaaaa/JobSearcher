@@ -168,6 +168,8 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .job-item { position: relative; display: flex; gap: 3px; align-items: stretch; }
 .job-link { display: block; position: relative; flex: 1; min-width: 0; background: #f7f8fb; border: 1px solid rgba(108, 134, 177, .055); border-radius: 8px; padding: 10px 24px 10px 10px; transition: background .14s, border-color .14s, transform .14s; }
 .job-link:hover { background: #eef4ff; border-color: rgba(72, 126, 233, .26); }
+.job-link.has-age-tint { border-color: var(--job-age-border); background: var(--job-age-tint); }
+.job-link.has-age-tint:hover { background: color-mix(in srgb, var(--job-age-tint) 65%, #eef4ff); border-color: var(--job-age-border); }
 .job-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; font-weight: 610; color: #34445a; font-size: 12.5px; line-height: 1.35; }
 .job-meta { margin-top: 7px; display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 8px; align-items: center; color: #8794a6; }
 .job-location { display: inline-flex; gap: 4px; align-items: center; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
