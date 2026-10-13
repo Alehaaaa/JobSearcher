@@ -22,7 +22,9 @@ else
   git -C "${deployment_dir}" checkout -q -b github-pages
 fi
 
-rsync -a --delete --exclude .git/ "${site_source}/" "${deployment_dir}/"
+# Keep the Pages branch README as a repository index; exclude it from dist sync
+# so publishing a fresh build does not accidentally delete branch documentation.
+rsync -a --delete --exclude .git/ --exclude README.md "${site_source}/" "${deployment_dir}/"
 touch "${deployment_dir}/.nojekyll"
 git -C "${deployment_dir}" add -A
 if git -C "${deployment_dir}" diff --cached --quiet; then
