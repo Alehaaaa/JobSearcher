@@ -21,3 +21,33 @@ test('relative time uses calendar days and concise weeks, months and years', () 
   assert.equal(relativeJobTime(daysAgo(380), noon), '1y ago');
   assert.equal(relativeJobTime('invalid', noon), '');
 });
+
+test('community countries classify into geography filters instead of Unspecified', async () => {
+  const { analyzeJob, matchesLocation } = await import('./src/filters.js');
+  const examples = [
+    ['Tallinn, Estonia', 'Europe', 'Estonia'],
+    ["St. Julian's, Malta", 'Europe', 'Malta'],
+    ['Sarajevo, Bosnia and Herzegovina', 'Europe', 'Bosnia and Herzegovina'],
+    ['Gibraltar', 'Europe', 'Gibraltar'],
+    ['Kazakhstan', 'Asia', 'Kazakhstan'],
+    ['Uzbekistan', 'Asia', 'Uzbekistan'],
+    ['Almaty, Kazakhstan', 'Asia', 'Kazakhstan'],
+    ['Culver City, California', 'North America', 'United States'],
+  ];
+  for (const [location, region, country] of examples) {
+    const job = analyzeJob({ title: 'Artist', location, experienceLevel: 'Mid' });
+    assert.ok(job.regions.includes(region), location + ' lacks region ' + region);
+    assert.ok(job.countries.includes(country), location + ' lacks country ' + country);
+    assert.ok(!job.regions.includes('Unspecified'), location + ' wrongly unspecified');
+    assert.ok(matchesLocation(job, [region], []), location + ' region filter failed');
+    assert.ok(matchesLocation(job, [], [country]), location + ' country filter failed');
+  }
+});
+
+test('offline studio configuration has the same Blur fallback as JobSearcher/main', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const config = JSON.parse(await readFile(new URL('./data/studios.json', import.meta.url), 'utf8'));
+  const blur = config.find(studio => studio.id === 'blur');
+  assert.deepEqual(blur.scraping.map.location,
+    { selector: 'p.body__secondary', default: 'Culver City, California' });
+});

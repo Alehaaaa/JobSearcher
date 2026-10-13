@@ -150,6 +150,13 @@ function jobLink(text) {
   }
 }
 
+// Treat Boolean/formula placeholders in spreadsheet location cells as empty,
+// not as a real city, state or country. Other job fields remain untouched.
+const cleanLocationCell = value => String(value ?? '').split(',')
+  .map(part => part.trim())
+  .filter(part => part && !/^(?:false|true|null|undefined)$/i.test(part))
+  .join(', ');
+
 function normalizeHeading(value) {
   return String(value || '').replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/\s+/g, ' ').replace(/\s*\/\s*/g, '/')
@@ -210,9 +217,10 @@ export function parsePublicSheetCSV(csv, metadata = {}) {
     const title = get(columns.title);
     const link = jobLink(get(columns.link));
     if (!studioName || !title || !link) continue;
-    const rawLocation = get(columns.location);
+    const rawLocation = cleanLocationCell(get(columns.location));
     const locationParts = rawLocation ? [rawLocation] :
-      [columns.city, columns.province, columns.country].map(get).filter(Boolean);
+      [columns.city, columns.province, columns.country]
+        .map(index => cleanLocationCell(get(index))).filter(Boolean);
     const used = new Set();
     const location = locationParts.filter(part => {
       const normalized = part.toLowerCase();

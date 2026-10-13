@@ -244,3 +244,23 @@ if (process.argv.includes('--live')) {
     console.log('Live anonymous spreadsheet records:', jobs.length);
   });
 }
+
+test('blank Boolean cells from Google Sheets do not become city, province or country', () => {
+  const sample = record(headings) + '\n' +
+    record(['Unknown Studio', '', 'Sarajevo', '', 'FALSE', '', 'Bosnia and Herzegovina', '',
+      'Level Designer', '', 'Senior', '', 'Hybrid', '', 'October 12, 2026', '',
+      'https://example.org/job/1']) + '\n' +
+    record(['Another Studio', '', 'Almaty', '', 'FALSE', '', 'Kazakhstan', '',
+      'Artist', '', 'Mid', '', 'Hybrid', '', 'October 12, 2026', '',
+      'https://example.org/job/2']) + '\n' +
+    'Studio,Job Title,Source/Contact,Location\n';
+  const jobs = parsePublicSheetCSV(sample);
+  assert.equal(jobs.length, 2);
+  assert.equal(jobs.find(job => job.studioName === 'Unknown Studio').location,
+    'Sarajevo, Bosnia and Herzegovina');
+  assert.equal(jobs.find(job => job.studioName === 'Another Studio').location,
+    'Almaty, Kazakhstan');
+  const flat = parsePublicSheetCSV('Company,Role,Application URL,Location\n' +
+    'Test Company,Animator,https://example.org/job/3,"Tallinn, FALSE, Estonia"');
+  assert.equal(flat[0].location, 'Tallinn, Estonia');
+});
