@@ -149,7 +149,10 @@
                     "exclude": ".tag-container"
                 },
                 "link": "a",
-                "location": "p.body__secondary"
+                "location": {
+                    "selector": "p.body__secondary",
+                    "default": "Culver City, California"
+                }
             }
         }
     },
