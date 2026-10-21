@@ -3,6 +3,7 @@ import { fetchJobs, loadConfig, normalizeStudioJobLink } from '../scraper.js';
 import { fetchPublicSheet, parseSheetReference, PUBLIC_SHEET_URL, DEFAULT_PUBLIC_SHEET_NAME, displaySheetListName } from '../sheet-source.js';
 import { groupSheetStudios, mergeStudioJobs } from '../sheet-companies.js';
 import { displayLevel, displayLocation, relativeJobTime, jobAgeAppearance } from './job-presentation.js';
+import { glassdoorAnimatorSalaryLookup } from './salary-lookup.js';
 import { whenNearViewport } from './viewport.js';
 import { resolveStudioBrand } from './studio-logo.js';
 import { VERIFIED_STUDIO_HOMEPAGES } from './verified-studio-homepages.js';
@@ -244,6 +245,7 @@ function StudioCard({ studio, brand, data, jobs, onRefresh, expanded, onExpand }
           <div className="job-list">
             {jobs.slice(0, limit).map(job => {
               const appearance = jobAgeAppearance(job);
+              const salaryLookup = glassdoorAnimatorSalaryLookup(job);
               return <div className="job-item" key={job.link + '|' + job.title + '|' + job.location}>
                 <a className={'job-link' + (appearance ? ' has-age-tint' : '')}
                    style={appearance || undefined}
@@ -257,6 +259,9 @@ function StudioCard({ studio, brand, data, jobs, onRefresh, expanded, onExpand }
                   <Icon name="external" className="job-external"/>
                 </a>
                 {job.extraLink && <a className="job-extra" href={job.extraLink} target="_blank" rel="noopener noreferrer" aria-label={'Additional details for ' + job.title} title="Additional details"><Icon name="document"/></a>}
+                {salaryLookup && <a className="job-salary" href={salaryLookup.url}
+                  target="_blank" rel="noopener noreferrer" aria-label={'Compare ' + salaryLookup.role + ' salary on Glassdoor'}
+                  title={salaryLookup.tooltip}>Pay</a>}
               </div>;
             })}
             {!expanded && jobs.length > limit && <button type="button" className="show-more" onClick={onExpand}>Show {jobs.length - limit} more positions</button>}

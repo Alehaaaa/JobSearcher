@@ -206,6 +206,12 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .job-extra { align-self: center; display: grid; place-items: center; width: 20px; height: 30px; color: #8292a9; border-radius: 4px; }
 .job-extra:hover { background: #eef4ff; color: var(--primary); }
 .job-extra svg { width: 16px; height: 16px; }
+.job-salary { align-self: center; display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 auto; min-width: 34px; height: 27px; padding: 0 5px; border: 1px solid var(--divider);
+  border-radius: 7px; background: var(--surface); color: var(--primary-strong);
+  text-decoration: none; font-size: 10px; font-weight: 720; letter-spacing: .1px; }
+.job-salary:hover, .job-salary:focus-visible { color: var(--primary); background: var(--hover);
+  border-color: var(--primary); outline-offset: 2px; }
 .show-more { margin: 2px 3px; padding: 9px; border: 0; border-radius: 7px; background: #eff4fe; color: #386cc7; font-weight: 630; font-size: 12px; }
 .show-more:hover { background: #e1ebfd; }
 .card-footer { font-size: 10px; padding: 5px 13px 7px; text-align: right; color: #a2afc0; border-top: 1px solid rgba(130, 151, 180, .08); }
